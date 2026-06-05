@@ -1,0 +1,25 @@
+{
+  "name": "Sistema de Verificación",
+  "short_name": "SIVES",
+  "description": "Aplicación para verificación y subida de imágenes geolocalizadas.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/iconos/escudo-dim.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/iconos/escudo-dim2.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
