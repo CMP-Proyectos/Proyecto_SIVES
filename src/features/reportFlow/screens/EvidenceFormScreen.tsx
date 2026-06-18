@@ -23,6 +23,7 @@ interface Props {
   note: string; setNote: (v: string) => void;
   ohms: string; setOhms: (v: string) => void;
   isPatActivity: boolean;
+  isSeleccion: { value: string; label: string }[] | null;
   isLoading: boolean;
   onSave: () => void;
   previousRecord?: any;
@@ -35,7 +36,7 @@ export const EvidenceFormScreen = ({
   isFetchingGps, onCaptureGps,
   utmZone, setUtmZone, utmEast, setUtmEast, utmNorth, setUtmNorth, onUpdateUtm,
   evidenceImages, evidencePreview, isAnalyzing, aiFeedback, onCaptureFile, onRemoveImage,
-  note, setNote, ohms, setOhms, isPatActivity,
+  note, setNote, ohms, setOhms, isPatActivity, isSeleccion,
   isLoading, onSave,
   previousRecord
 }: Props) => {
@@ -50,7 +51,7 @@ export const EvidenceFormScreen = ({
     boxShadow: 'none'
   };
 
-  const ensureFieldVisibility = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const ensureFieldVisibility = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const target = event.currentTarget;
     window.setTimeout(() => {
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -284,7 +285,11 @@ export const EvidenceFormScreen = ({
 
           {isPatActivity && (
             <div style={{ marginTop: "14px" }}>
-              <label style={styles.label}>Ohms (Ω)</label>
+              <label style={styles.label}>Especificación</label>
+              <label style={styles.label}>Instalación PAT: Ingresar Ohms</label>
+              <label style={styles.label}>Tendido de Conductor: Ingresar medicion (m) de conductor</label>
+              <label style={styles.label}>Conexión de acometida: Ingresar medicion (m) de conductor</label>
+              <label style={styles.label}>Instalación de medidor: Ingresar numero de serie</label>
               <input
                 type="number"
                 inputMode="decimal"
@@ -293,9 +298,31 @@ export const EvidenceFormScreen = ({
                 value={ohms}
                 onChange={(event) => setOhms(event.target.value)}
                 onFocus={ensureFieldVisibility}
-                placeholder="Ingrese medición en ohms"
+                placeholder="Ingrese la especificación"
                 style={styles.input}
               />
+            </div>
+          )}
+
+          {isSeleccion && Array.isArray(isSeleccion) && (
+            <div style={{ marginTop: "14px" }}>
+              <label style={styles.label}>Selección de detalle</label>
+              <select
+                value={ohms}
+                onChange={(event) => setOhms(event.target.value)}
+                onFocus={ensureFieldVisibility}
+                style={styles.input}
+              >
+                <option value="" disabled>
+                  Seleccione una opción
+                </option>
+                
+                {isSeleccion.map((opcion) => (
+                  <option key={opcion.value} value={opcion.value}>
+                    {opcion.label}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 

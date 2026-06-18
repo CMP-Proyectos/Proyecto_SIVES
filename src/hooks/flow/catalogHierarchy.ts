@@ -37,10 +37,16 @@ export const normalizeOptionalText = (value: string | null | undefined) => {
   return trimmed ? trimmed : null;
 };
 
-export const normalizeStructureName = (value: string) => value.trim();
+export const normalizeStructureName = (name: string | null | undefined) => {
+  return name?.trim() || "";
+};
 
-export const sortByLabel = (left: string, right: string) =>
-  left.localeCompare(right, "es", { sensitivity: "base" });
+export const sortByLabel = (left: string | null | undefined, right: string | null | undefined) => {
+  const safeLeft = left || "";
+  const safeRight = right || "";
+  
+  return safeLeft.localeCompare(safeRight, "es", { sensitivity: "base" });
+};
 
 export const uniqueStrings = (values: (string | null | undefined)[]) =>
   Array.from(new Set(values.filter((value): value is string => Boolean(value)))).sort(sortByLabel);
@@ -103,13 +109,14 @@ export const buildCatalogHierarchySnapshot = ({
     ? []
     : scopedDetails.filter((detail) => detail.activityItem === selectedItem);
 
-  const filteredFronts = !selectedItem
+  const filteredFronts = !selectedStructure
     ? []
-    : fronts.filter((front) => {
-        return detailsForSelectedItem.some(
-          (detail) => localityMap.get(detail.ID_Localidad)?.ID_Frente === front.ID_Frente
-        );
-      });
+    : fronts.filter(front => 
+        detailsForSelectedItem.some(d => 
+          d.Nombre_Detalle === selectedStructure && 
+          localityMap.get(d.ID_Localidad)?.ID_Frente === front.ID_Frente
+        )
+      );
 
   const detailsForSelectedFront = !selectedFrontId
     ? []
@@ -157,7 +164,7 @@ export const buildCatalogHierarchySnapshot = ({
     detailsAfterSubstation = detailsForCurrentLocality.filter((detail) => Boolean(detail.Subestacion));
   }
 
-  const structures = uniqueStrings(detailsAfterSubstation.map((detail) => detail.Nombre_Detalle));
+  const structures = uniqueStrings(detailsForSelectedItem.map(d => d.Nombre_Detalle));
   const filteredStructures = !normalizeText(detailSearch)
     ? structures
     : structures.filter((structure) => structure.toLowerCase().includes(normalizeText(detailSearch)));
@@ -166,7 +173,7 @@ export const buildCatalogHierarchySnapshot = ({
     ? []
     : detailsAfterSubstation.filter((detail) => detail.Nombre_Detalle === selectedStructure);
 
-  const groups = uniqueStrings(detailsForCurrentStructure.map((detail) => detail.activityGroup));
+  const groups = uniqueStrings(detailsForCurrentLocality.map((detail) => detail.activityGroup));
   const filteredGroups = !normalizeText(groupSearch)
     ? groups
     : groups.filter((group) => group.toLowerCase().includes(normalizeText(groupSearch)));
@@ -174,7 +181,7 @@ export const buildCatalogHierarchySnapshot = ({
   const filteredActivities = !selectedGroup
     ? []
     : uniqueActivities(
-        detailsForCurrentStructure
+        detailsForCurrentLocality
           .filter((detail) => detail.activityGroup === selectedGroup)
           .map((detail) => activityMap.get(detail.ID_Actividad))
       );

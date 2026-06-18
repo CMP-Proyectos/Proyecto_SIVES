@@ -43,7 +43,7 @@ export type DetailRecord = {
 export type ActivityRecord = {
   ID_Actividad: number;
   Nombre_Actividad: string;
-  Grupo: string | null;
+  Grupo: string;
   Item: string | null;
   Categoria: string | null;
 };
@@ -319,7 +319,7 @@ export const getDetailsByLocalityIds = (localityIds: number[]) => {
   return fetchCatalogByIds<DetailRecord>(
     "Detalles Actividad",
     "ID_DetallesActividad, ID_Actividad, ID_Localidad, Latitud, Longitud, Nombre_Detalle, Subestacion",
-    "Nombre_Detalle",
+    "ID_DetallesActividad",
     "ID_Localidad",
     localityIds
   );

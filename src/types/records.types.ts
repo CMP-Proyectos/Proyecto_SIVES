@@ -35,7 +35,7 @@ export type CreateRegistroPayload = {
   Comentario: string | null;
   Ruta_Archivo: string;
   Bucket: string;
-  Ohms?: number | null;
+  Ohms?: number | null | string;
 };
 
 export type RegistroImagenPayload = {

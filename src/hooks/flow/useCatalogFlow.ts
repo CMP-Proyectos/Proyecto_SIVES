@@ -273,6 +273,7 @@ export function useCatalogFlow(isOnline: boolean) {
     structures,
     filteredStructures,
     detailsForCurrentStructure,
+    detailsForCurrentLocality,
     groups,
     filteredGroups,
     filteredActivities,
@@ -380,7 +381,7 @@ export function useCatalogFlow(isOnline: boolean) {
   const selectActivity = useCallback(
     (activityId: number) => {
       const activity = filteredActivities.find((candidate) => candidate.ID_Actividad === activityId);
-      const detail = detailsForCurrentStructure
+      const detail = detailsForCurrentLocality
         .filter((candidate) => candidate.ID_Actividad === activityId)
         .sort((left, right) => left.ID_DetallesActividad - right.ID_DetallesActividad)[0];
 
@@ -392,7 +393,7 @@ export function useCatalogFlow(isOnline: boolean) {
       setSelectedDetail(detail);
       return { activity, detail };
     },
-    [detailsForCurrentStructure, filteredActivities]
+    [detailsForCurrentLocality, filteredActivities]
   );
 
   const toggleGroupExpanded = useCallback((group: string) => {
@@ -438,7 +439,7 @@ export function useCatalogFlow(isOnline: boolean) {
     hasSubstationsForCurrentSelection,
     structures,
     filteredStructures,
-    detailsForCurrentStructure,
+    detailsForCurrentLocality,
     groups,
     filteredGroups,
     filteredActivities,

@@ -21,7 +21,7 @@ export type SaveReportOnlineParams = {
   lng: number;
   userId: string;
   comment: string;
-  ohms?: number | null;
+  ohms?: number | null | string;
   evidenceFiles: ReportEvidenceInput[];
 };
 
@@ -67,7 +67,7 @@ const insertReportRecord = async (params: {
   userId: string;
   checkedActivityId: number;
   comment: string;
-  ohms?: number | null;
+  ohms?: number | null | string;
   mainImage: UploadedReportImage;
 }) => {
   return createRegistro({

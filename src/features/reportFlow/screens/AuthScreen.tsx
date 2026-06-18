@@ -252,7 +252,7 @@ export const AuthScreen = ({
           ) : (
             <div style={brandingRowStyle}>
               <img src="/iconos/escudo.jpg" alt="Escudo CMP" style={brandingShieldStyle} />
-              <img src="/iconos/slogan.jpg" alt="SIVES" style={brandingSloganStyle} />
+              <img src="/iconos/slogan.jpg" alt="SIVEO" style={brandingSloganStyle} />
             </div>
           )}
           <p style={{ ...styles.text, color: "#64748B", fontSize: "14px", margin: 0 }}>

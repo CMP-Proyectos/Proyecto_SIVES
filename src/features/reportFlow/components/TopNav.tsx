@@ -70,7 +70,7 @@ export const TopNav = ({ step, isOnline, onBack, breadcrumbNames }: Props) => {
           </button>
         )}
       </div>
-
+l
       {!isRootScreen && (
         <div style={styles.breadcrumbs}>
           {breadcrumbNames.project && <span style={styles.breadcrumbItem}>{breadcrumbNames.project}</span>}
@@ -78,6 +78,12 @@ export const TopNav = ({ step, isOnline, onBack, breadcrumbNames }: Props) => {
             <>
               <span>/</span>
               <span>{breadcrumbNames.item}</span>
+            </>
+          )}
+          {breadcrumbNames.detail && (
+            <>
+              <span>/</span>
+              <span>{breadcrumbNames.detail}</span>
             </>
           )}
           {breadcrumbNames.front && (
@@ -96,12 +102,6 @@ export const TopNav = ({ step, isOnline, onBack, breadcrumbNames }: Props) => {
             <>
               <span>/</span>
               <span>{breadcrumbNames.substation}</span>
-            </>
-          )}
-          {breadcrumbNames.detail && (
-            <>
-              <span>/</span>
-              <span>{breadcrumbNames.detail}</span>
             </>
           )}
           {breadcrumbNames.group && (

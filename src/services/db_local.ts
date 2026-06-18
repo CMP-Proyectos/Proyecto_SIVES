@@ -31,7 +31,7 @@ export interface PendingRecord {
     lat: number;
     lng: number;
     comment: string;
-    ohms?: number | null;
+    ohms?: string | number | null;
   };
 }
 

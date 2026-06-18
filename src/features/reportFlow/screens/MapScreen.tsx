@@ -2,7 +2,7 @@ import React from "react";
 import { MapCanvas } from "../components/MapCanvas";
 import { styles } from "../../../theme/styles";
 import type { UseMapFlowResult } from "../../../hooks/flow/useMapFlow";
-import { isPuestaTierra } from "../../../utils/activity";
+import { isCuadroTexto } from "../../../utils/activity";
 
 type Option = {
   value: string;
@@ -171,7 +171,7 @@ export const MapScreen = ({ isOnline, map }: Props) => {
     value: String(activity.ID_Actividad),
     label: activity.Nombre_Actividad,
   }));
-  const selectedRecordIsPat = isPuestaTierra({
+  const selectedRecordIsPat = isCuadroTexto({
     Grupo: map.selectedRecord?.nombre_grupo,
     Nombre_Actividad: map.selectedRecord?.nombre_actividad,
   });

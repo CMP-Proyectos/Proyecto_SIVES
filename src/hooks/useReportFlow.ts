@@ -14,7 +14,7 @@ import {
 } from "../services/offlineSyncService";
 import { saveReportOnline } from "../repositories/reports.repository";
 import { Step, ToastState, ConfirmModalState } from "../features/reportFlow/types";
-import { isPuestaTierra, parseOhmsValue } from "../utils/activity";
+import { isCuadroTexto, parseOhmsValue, getOpcionesSeleccion } from "../utils/activity";
 
 import { useSessionFlow } from "./flow/useSessionFlow";
 import type { SessionUser } from "./flow/useSessionFlow";
@@ -120,7 +120,7 @@ export function useReportFlow() {
 
   const groupsWithPreviousRecords = new Set<string>();
   const activitiesWithPreviousRecords = new Set<number>();
-  catalog.detailsForCurrentStructure.forEach((detail) => {
+  catalog.detailsForCurrentLocality.forEach((detail) => {
     if (!historyDetailIdSet.has(detail.ID_DetallesActividad)) return;
 
     activitiesWithPreviousRecords.add(detail.ID_Actividad);
@@ -440,10 +440,15 @@ export function useReportFlow() {
     if (evidence.evidenceFiles.length === 0 || !session.sessionUser || !catalog.selectedDetail) return showToast("Faltan datos", "error");
     if (evidence.evidenceFiles.length > MAX_EVIDENCE_IMAGES) return showToast("Maximo 5 imagenes", "error");
 
-    const isPatActivity = isPuestaTierra(catalog.selectedActivity);
+    const isPatActivity = isCuadroTexto(catalog.selectedActivity);
+    const isSelector = getOpcionesSeleccion(catalog.selectedActivity);
     const parsedOhms = parseOhmsValue(evidence.ohms);
     if (isPatActivity && parsedOhms === null) {
       showToast("Ingrese una medicion Ohms valida para PAT", "error");
+      return;
+    }
+    if (isSelector && evidence.ohms === null) {
+      showToast("Ingrese una especificacion", "error");
       return;
     }
     if (isPatActivity && parsedOhms !== null && parsedOhms < 0) {
@@ -492,7 +497,7 @@ export function useReportFlow() {
         lat: evidence.gpsLocation?.latitude || selectedDetail.Latitud || 0,
         lng: evidence.gpsLocation?.longitude || selectedDetail.Longitud || 0,
         comment: evidence.note,
-        ohms: isPatActivity ? parsedOhms : null,
+        ohms: isSelector ? evidence.ohms : (isPatActivity ? parsedOhms : null),
       });
       await savePendingReport(pendingRecord);
       console.info("[SAVE] Registro guardado localmente en pendingUploads", {
@@ -517,7 +522,7 @@ export function useReportFlow() {
         lng: evidence.gpsLocation?.longitude || selectedDetail.Longitud,
         userId: sessionUser.id,
         comment: evidence.note,
-        ohms: isPatActivity ? parsedOhms : null,
+        ohms: isSelector ? evidence.ohms : (isPatActivity ? parsedOhms : null),
         evidenceFiles: evidenceFiles.map((image) => ({
           file: image.file,
           order: image.order,
@@ -553,7 +558,8 @@ export function useReportFlow() {
 
   const selectItem = (item: string) => {
     catalog.selectItem(item);
-    setStep("front");
+    //setStep("front");
+    setStep("detail");
   };
 
   const selectFront = (id: number) => {
@@ -563,7 +569,7 @@ export function useReportFlow() {
 
   const selectLocality = (id: number) => {
     catalog.selectLocality(id);
-    setStep(catalog.hasSubstationsForLocality(id) ? "substation" : "detail");
+    setStep(catalog.hasSubstationsForLocality(id) ? "substation" : "group");
   };
 
   const selectSubstation = (substation: string) => {
@@ -573,7 +579,7 @@ export function useReportFlow() {
 
   const selectStructure = (structure: string) => {
     catalog.selectStructure(structure);
-    setStep("group");
+    setStep("front");
   };
 
   const selectGroup = (group: string) => {
@@ -589,11 +595,11 @@ export function useReportFlow() {
 
   const goBack = () => {
     const previousStep: Step =
-      step === "front" ? "item"
+      step === "front" ? "detail"
       : step === "locality" ? "front"
       : step === "substation" ? "locality"
-      : step === "detail" ? (catalog.hasSubstationsForCurrentSelection ? "substation" : "locality")
-      : step === "group" ? "detail"
+      : step === "detail" ? "item"
+      : step === "group" ? (catalog.hasSubstationsForCurrentSelection ? "substation" : "locality")
       : step === "activity" ? "group"
       : step === "confirm" ? "activity"
       : step === "map" ? "project"
@@ -601,6 +607,7 @@ export function useReportFlow() {
       : step === "profile" ? "project"
       : step === "user_records" ? "profile"
       : step === "files" ? "profile"
+      : step === "item" ? "project"
       : "project";
 
     setStep(previousStep);
@@ -709,7 +716,7 @@ export function useReportFlow() {
     gpsLocation: evidence.gpsLocation, handleCaptureGps: evidence.handleCaptureGps,
     utmZone: evidence.utmZone, setUtmZone: evidence.setUtmZone, utmEast: evidence.utmEast, setUtmEast: evidence.setUtmEast, utmNorth: evidence.utmNorth, setUtmNorth: evidence.setUtmNorth, handleUpdateFromUtm: evidence.handleUpdateFromUtm,
     evidenceImages: evidence.evidenceImages, evidencePreview: evidence.evidencePreview, handleCaptureFile: evidence.handleCaptureFile, removeEvidenceImage: evidence.removeEvidenceImage, note: evidence.note, setNote: evidence.setNote, isFetchingGps: evidence.isFetchingGps, isAnalyzing: evidence.isAnalyzing, aiFeedback: evidence.aiFeedback,
-    ohms: evidence.ohms, setOhms: evidence.setOhms, isPatActivity: isPuestaTierra(catalog.selectedActivity),
+    ohms: evidence.ohms, setOhms: evidence.setOhms, isPatActivity: isCuadroTexto(catalog.selectedActivity), isSelector : getOpcionesSeleccion(catalog.selectedActivity),
     saveReport, getMapUrl,
     map,
     userRecords: records.userRecords, isLoadingRecords: records.isLoadingRecords, selectedRecordId: records.selectedRecordId, setSelectedRecordId: records.setSelectedRecordId,

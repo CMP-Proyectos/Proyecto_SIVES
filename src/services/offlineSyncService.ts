@@ -18,7 +18,7 @@ export type CreatePendingReportPayloadParams = {
   lat: number;
   lng: number;
   comment: string;
-  ohms?: number | null;
+  ohms?: number | null | string;
 };
 
 export type SyncPendingReportsResult = {

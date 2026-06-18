@@ -5,7 +5,7 @@ export const normalizeText = (value?: string | null) =>
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
 
-export const isPuestaTierra = (actividad?: {
+export const isCuadroTexto = (actividad?: {
   Grupo?: string | null;
   Nombre_Actividad?: string | null;
 } | null) => {
@@ -13,11 +13,37 @@ export const isPuestaTierra = (actividad?: {
   const nombre = normalizeText(actividad?.Nombre_Actividad);
 
   return (
-    grupo.includes("pat") ||
-    nombre.includes("pat") ||
-    (grupo.includes("puesta") && grupo.includes("tierra")) ||
-    (nombre.includes("puesta") && nombre.includes("tierra"))
+    nombre.includes("instalacion de pat") ||
+    grupo.includes("conductores") ||
+    grupo.includes("acometida")
   );
+};
+
+export const getOpcionesSeleccion = (actividad?: {
+  Grupo?: string | null;
+  Nombre_Actividad?: string | null;
+} | null) => {
+  const grupo = normalizeText(actividad?.Grupo);
+  const nombre = normalizeText(actividad?.Nombre_Actividad);
+
+  // Caso 1: Armados
+  if (grupo.includes("armados")) {
+    return [
+      { value: "tiene_alargador", label: "Tiene alargador" },
+      { value: "no_tiene_alargador", label: "No tiene alargador" } 
+    ];
+  }
+
+  // Caso 2: PAT
+  if (nombre.includes("relleno y compactacion de pat")) {
+    return [
+      { value: "sin_cemento", label: "Sin cemento conductivo" },
+      { value: "con_cemento", label: "Con cemento conductivo" }
+    ];
+  }
+
+  // Si no cumple ninguna, no hay selección
+  return null; 
 };
 
 export const parseOhmsValue = (value: string) => {

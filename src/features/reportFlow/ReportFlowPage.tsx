@@ -87,7 +87,7 @@ export default function ReportFlowPage() {
           front: selectedFrontName,
           locality: selectedLocalityName,
           substation: flow.selectedSubstation ?? undefined,
-          detail: flow.selectedStructure ?? flow.selectedDetail?.Grupo,
+          detail: flow.selectedStructure ?? flow.selectedDetail?.Nombre_Detalle,
           group: flow.selectedGroup ?? undefined,
           activity: flow.selectedActivity?.Nombre_Actividad,
         }}
@@ -201,7 +201,7 @@ export default function ReportFlowPage() {
 
         {flow.step === "item" && (
           <div style={styles.section}>
-            <h2 style={styles.heading}>Seleccionar sección</h2>
+            <h2 style={styles.heading}>Seleccionar Sección</h2>
 
             <div style={styles.scrollableY}>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -313,9 +313,9 @@ export default function ReportFlowPage() {
 
         {flow.step === "detail" && (
           <div style={styles.section}>
-            <h2 style={styles.heading}>Seleccionar Grupo</h2>
+            <h2 style={styles.heading}>Seleccionar especialidad</h2>
             <input
-              placeholder="Filtrar por Grupo..."
+              placeholder="Filtrar por especialidad..."
               value={flow.detailSearch}
               onChange={(event) => flow.setDetailSearch(event.target.value)}
               style={styles.input}
@@ -336,9 +336,6 @@ export default function ReportFlowPage() {
                         <div style={{ fontSize: "13px", fontWeight: "700", color: "#1E293B" }}>
                           {structure}
                         </div>
-                        <div style={{ fontSize: "11px", color: "#64748B", marginTop: "4px" }}>
-                          {flow.selectedSubstation || selectedLocalityName || "Localidad"}
-                        </div>
                       </div>
                       {flow.selectedItem && (
                         <div style={{ backgroundColor: "#F1F5F9", padding: "4px 8px", borderRadius: "4px" }}>
@@ -358,7 +355,7 @@ export default function ReportFlowPage() {
                   ))
                 ) : (
                   <div style={{ padding: "30px", textAlign: "center", color: "#94A3B8" }}>
-                    No se encontraron grupos
+                    No se encontraron especialidades
                   </div>
                 )}
               </div>
@@ -368,9 +365,9 @@ export default function ReportFlowPage() {
 
         {flow.step === "group" && (
           <div style={styles.section}>
-            <h2 style={styles.heading}>Seleccionar tipo</h2>
+            <h2 style={styles.heading}>Seleccionar grupo</h2>
             <input
-              placeholder="Buscar tipo..."
+              placeholder="Buscar grupo..."
               value={flow.groupSearch}
               onChange={(event) => flow.setGroupSearch(event.target.value)}
               style={styles.input}
@@ -458,7 +455,7 @@ export default function ReportFlowPage() {
                   })
                 ) : (
                   <div style={{ padding: "30px", textAlign: "center", color: "#94A3B8" }}>
-                    No se encontraron tipos de actividad para esta estructura
+                    No se encontraron grupos para esta estructura
                   </div>
                 )}
               </div>
@@ -489,7 +486,7 @@ export default function ReportFlowPage() {
                             {activity.Nombre_Actividad}
                           </div>
                           <div style={{ fontSize: "11px", color: "#64748B", marginTop: "4px" }}>
-                            {activity.Especialidad || "Sin grupo"} / {flow.selectedStructure || "Sin estructura"}
+                            {activity.Grupo || "Sin grupo"} / {flow.selectedStructure || "Sin estructura"}
                           </div>
                         </div>
 
@@ -514,7 +511,7 @@ export default function ReportFlowPage() {
             selectedFrontName={selectedFrontName ?? null}
             selectedLocalityName={selectedLocalityName ?? null}
             selectedSubstation={flow.selectedSubstation}
-            selectedStructureName={flow.selectedStructure ?? flow.selectedDetail?.Grupo ?? null}
+            selectedStructureName={flow.selectedStructure ?? flow.selectedDetail?.Nombre_Detalle ?? null}
             selectedGroup={flow.selectedGroup}
             selectedActivity={flow.selectedActivity}
             selectedDetail={flow.selectedDetail}
@@ -552,6 +549,7 @@ export default function ReportFlowPage() {
             ohms={flow.ohms}
             setOhms={flow.setOhms}
             isPatActivity={flow.isPatActivity}
+            isSeleccion = {flow.isSelector}
             isLoading={flow.isLoading}
             onSave={() => {
               flow.saveReport();
