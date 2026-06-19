@@ -307,41 +307,39 @@ export function useCatalogFlow(isOnline: boolean) {
     [loadProjectScope]
   );
 
-  const selectItem = useCallback((item: string) => {
+const selectItem = useCallback((item: string) => {
     setSelectedItem(item);
+    setSelectedStructure(null);
     setSelectedFrontId(null);
     setSelectedLocalityId(null);
     setSelectedSubstation(null);
-    setSelectedStructure(null);
     setSelectedGroup(null);
     setSelectedActivity(null);
     setSelectedDetail(null);
-    setLocalitySearch("");
-    setSubstationSearch("");
-    setGroupSearch("");
-    setDetailSearch("");
-    setExpandedGroups({});
   }, []);
 
-  const selectFront = useCallback((frontId: number) => {
+const selectStructure = useCallback((structure: string) => {
+    setSelectedStructure(structure);
+    setSelectedFrontId(null);
+    setSelectedLocalityId(null);
+    setSelectedSubstation(null);
+    setSelectedGroup(null);
+    setSelectedActivity(null);
+    setSelectedDetail(null);
+  }, []);
+
+const selectFront = useCallback((frontId: number) => {
     setSelectedFrontId(frontId);
     setSelectedLocalityId(null);
     setSelectedSubstation(null);
-    setSelectedStructure(null);
     setSelectedGroup(null);
     setSelectedActivity(null);
     setSelectedDetail(null);
-    setLocalitySearch("");
-    setSubstationSearch("");
-    setGroupSearch("");
-    setDetailSearch("");
-    setExpandedGroups({});
   }, []);
 
-  const selectLocality = useCallback((localityId: number) => {
+const selectLocality = useCallback((localityId: number) => {
     setSelectedLocalityId(localityId);
     setSelectedSubstation(null);
-    setSelectedStructure(null);
     setSelectedGroup(null);
     setSelectedActivity(null);
     setSelectedDetail(null);
@@ -351,9 +349,8 @@ export function useCatalogFlow(isOnline: boolean) {
     setExpandedGroups({});
   }, []);
 
-  const selectSubstation = useCallback((substation: string) => {
+const selectSubstation = useCallback((substation: string) => {
     setSelectedSubstation(substation);
-    setSelectedStructure(null);
     setSelectedGroup(null);
     setSelectedActivity(null);
     setSelectedDetail(null);
@@ -362,16 +359,7 @@ export function useCatalogFlow(isOnline: boolean) {
     setExpandedGroups({});
   }, []);
 
-  const selectStructure = useCallback((structure: string) => {
-    setSelectedStructure(structure);
-    setSelectedGroup(null);
-    setSelectedActivity(null);
-    setSelectedDetail(null);
-    setGroupSearch("");
-    setExpandedGroups({});
-  }, []);
-
-  const selectGroup = useCallback((group: string) => {
+const selectGroup = useCallback((group: string) => {
     setSelectedGroup(group);
     setSelectedActivity(null);
     setSelectedDetail(null);

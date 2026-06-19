@@ -238,7 +238,7 @@ export default function ReportFlowPage() {
               label: front.Nombre_Frente,
             }))}
             onSelect={flow.selectFront}
-            emptyState="No se encontraron frentes para esta sección."
+            emptyState="No se encontraron frentes para esta especialidad."
           />
         )}
 

@@ -108,6 +108,16 @@ export const buildCatalogHierarchySnapshot = ({
   const detailsForSelectedItem = !selectedItem
     ? []
     : scopedDetails.filter((detail) => detail.activityItem === selectedItem);
+  
+
+  const structures = uniqueStrings(detailsForSelectedItem.map(d => d.Nombre_Detalle));
+  const filteredStructures = !normalizeText(detailSearch)
+    ? structures
+    : structures.filter((structure) => structure.toLowerCase().includes(normalizeText(detailSearch)));
+
+  const detailsForCurrentStructure = !selectedStructure
+    ? []
+    : detailsForSelectedItem.filter((detail) => detail.Nombre_Detalle === selectedStructure);
 
   const filteredFronts = !selectedStructure
     ? []
@@ -120,16 +130,19 @@ export const buildCatalogHierarchySnapshot = ({
 
   const detailsForSelectedFront = !selectedFrontId
     ? []
-    : detailsForSelectedItem.filter(
-        (detail) => localityMap.get(detail.ID_Localidad)?.ID_Frente === selectedFrontId
-      );
+      : detailsForCurrentStructure.filter(
+          (detail) => localityMap.get(detail.ID_Localidad)?.ID_Frente === selectedFrontId
+        );
 
+  // Imagen 2 actualizada
   const localitiesForSelection = !selectedFrontId
     ? []
     : localities.filter((locality) => {
         return (
           locality.ID_Frente === selectedFrontId &&
-          detailsForSelectedFront.some((detail) => detail.ID_Localidad === locality.ID_Localidad)
+          detailsForSelectedFront.some(
+            (detail) => detail.ID_Localidad === locality.ID_Localidad
+          )
         );
       });
 
@@ -163,15 +176,6 @@ export const buildCatalogHierarchySnapshot = ({
   } else if (hasSubstationsForCurrentSelection && requireSubstationSelection) {
     detailsAfterSubstation = detailsForCurrentLocality.filter((detail) => Boolean(detail.Subestacion));
   }
-
-  const structures = uniqueStrings(detailsForSelectedItem.map(d => d.Nombre_Detalle));
-  const filteredStructures = !normalizeText(detailSearch)
-    ? structures
-    : structures.filter((structure) => structure.toLowerCase().includes(normalizeText(detailSearch)));
-
-  const detailsForCurrentStructure = !selectedStructure
-    ? []
-    : detailsAfterSubstation.filter((detail) => detail.Nombre_Detalle === selectedStructure);
 
   const groups = uniqueStrings(detailsForCurrentLocality.map((detail) => detail.activityGroup));
   const filteredGroups = !normalizeText(groupSearch)
