@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { styles, evidenceStyles as es } from '../../../theme/styles';
 import { EvidenceImage } from '../types';
-import { RefreshCw, Navigation, MapPin, Camera, Image as ImageIcon, UploadCloud, AlertCircle, Trash2 } from 'lucide-react';
+import { FileText, FileUp, RefreshCw, Navigation, MapPin, Camera, Image as ImageIcon, UploadCloud, AlertCircle, Trash2 } from 'lucide-react';
 
 interface Props {
   isOnline: boolean;
@@ -24,6 +24,7 @@ interface Props {
   ohms: string; setOhms: (v: string) => void;
   isPatActivity: boolean;
   isSeleccion: { value: string; label: string }[] | null;
+  requiereArchivo: boolean;
   isLoading: boolean;
   onSave: () => void;
   previousRecord?: any;
@@ -36,7 +37,7 @@ export const EvidenceFormScreen = ({
   isFetchingGps, onCaptureGps,
   utmZone, setUtmZone, utmEast, setUtmEast, utmNorth, setUtmNorth, onUpdateUtm,
   evidenceImages, evidencePreview, isAnalyzing, aiFeedback, onCaptureFile, onRemoveImage,
-  note, setNote, ohms, setOhms, isPatActivity, isSeleccion,
+  note, setNote, ohms, setOhms, isPatActivity, isSeleccion, requiereArchivo,
   isLoading, onSave,
   previousRecord
 }: Props) => {
@@ -57,6 +58,8 @@ export const EvidenceFormScreen = ({
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 150);
   };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getToggleStyle = (mode: 'gps' | 'utm') => ({
     ...es.toggleBtn,
@@ -207,49 +210,105 @@ export const EvidenceFormScreen = ({
           <input ref={galleryInputRef} type="file" accept="image/*" multiple onChange={onCaptureFile} style={{ display: 'none' }} />
 
           {!evidencePreview ? (
-            <div style={es.uploadRow}>
-              <button onClick={() => cameraInputRef.current?.click()} style={getCameraBtnStyle()}>
-                <Camera size={32} style={{ marginBottom: '8px' }} />
-                <span style={{ fontSize: '12px', fontWeight: '700' }}>CAMARA</span>
-              </button>
+            requiereArchivo?(
+              <div style={es.uploadRow}>
+                <button 
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()} 
+                  style={es.uploadBtnLarge}
+                >
+                  <FileUp size={32} style={{ marginBottom: '8px' }} />
+                  <span style={{ fontSize: '12px', fontWeight: '700' }}>SUBIR ARCHIVO</span>
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                  accept=".pdf,.xls,.xlsx,.tif,.tiff,.zip" //limita los formatos posibles
+                  onChange={onCaptureFile} // Asumiendo que tu función actual puede manejar estos archivos
+                />
+              </div>
+            ):(
+              <div style={es.uploadRow}>
+                <button onClick={() => cameraInputRef.current?.click()} style={getCameraBtnStyle()}>
+                  <Camera size={32} style={{ marginBottom: '8px' }} />
+                  <span style={{ fontSize: '12px', fontWeight: '700' }}>CAMARA</span>
+                </button>
 
-              <button onClick={() => galleryInputRef.current?.click()} style={es.uploadBtnLarge}>
-                <ImageIcon size={32} style={{ marginBottom: '8px' }} />
-                <span style={{ fontSize: '12px', fontWeight: '700' }}>GALERIA</span>
-              </button>
-            </div>
+                <button onClick={() => galleryInputRef.current?.click()} style={es.uploadBtnLarge}>
+                  <ImageIcon size={32} style={{ marginBottom: '8px' }} />
+                  <span style={{ fontSize: '12px', fontWeight: '700' }}>GALERIA</span>
+                </button>
+              </div>
+            )
           ) : (
             <div style={{ marginBottom: '16px' }}>
-              <div style={es.previewContainer}>
-                <img src={evidencePreview} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} alt="Evidencia" />
-              </div>
-              <div style={es.helperText}>
-                Idealmente usa 3 imagenes utiles y complementarias. Evita fotos redundantes. Maximo 5 por registro.
-              </div>
-              <div style={es.imageCounter}>{evidenceImages.length} / 5 imagenes</div>
-              <div style={es.thumbnailGrid}>
-                {evidenceImages.map((image, index) => (
-                  <div key={image.id} style={es.thumbnailCard}>
-                    <img src={image.previewUrl} style={es.thumbnailImage} alt={`Evidencia ${index + 1}`} />
-                    <div style={es.thumbnailMeta}>
-                      <span>{index === 0 ? 'Principal' : `Imagen ${index + 1}`}</span>
-                      <button type="button" onClick={() => onRemoveImage(image.id)} style={es.thumbnailDeleteBtn}>
-                        <Trash2 size={14} />
+                <div style={es.previewContainer}>
+                  {(() => {
+                    const currentImgObj = evidenceImages.find(img => img.previewUrl === evidencePreview);
+                    const isImage = currentImgObj?.file.type.startsWith('image/');
+                    return isImage ? (
+                      <img src={evidencePreview} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} alt="Evidencia" />
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748B' }}>
+                        <FileText size={64} style={{ marginBottom: '16px' }} />
+                        <span style={{ fontSize: '14px', fontWeight: '600', textAlign: 'center', padding: '0 16px' }}>
+                          {currentImgObj?.file.name || 'Documento adjunto'}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
+                
+                <div style={es.helperText}>
+                  {requiereArchivo 
+                    ? "Sube los documentos requeridos." 
+                    : "Sube las imagenes"}
+                </div>
+                
+                <div style={es.imageCounter}>{evidenceImages.length} / 5 {requiereArchivo ? 'archivos' : 'imágenes'}</div>
+                
+                <div style={es.thumbnailGrid}>
+                  {evidenceImages.map((image, index) => {
+                    const isThumbImage = image.file.type.startsWith('image/');
+                    return (
+                      <div key={image.id} style={es.thumbnailCard}>
+                        {isThumbImage ? (
+                          <img src={image.previewUrl} style={es.thumbnailImage} alt={`Evidencia ${index + 1}`} />
+                        ) : (
+                          <div style={{ ...es.thumbnailImage, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1F5F9', color: '#94A3B8' }}>
+                            <FileText size={24} />
+                          </div>
+                        )}
+                        <div style={es.thumbnailMeta}>
+                          <span>{index === 0 ? 'Principal' : `${requiereArchivo ? 'Archivo' : 'Imagen'} ${index + 1}`}</span>
+                          <button type="button" onClick={() => onRemoveImage(image.id)} style={es.thumbnailDeleteBtn}>
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={es.actionsRow}>
+                  {requiereArchivo ? (
+                    <button type="button" onClick={() => fileInputRef.current?.click()} style={{...es.btnSmall, width: '100%'}} disabled={evidenceImages.length >= 5}>
+                      <FileUp size={14} /> AGREGAR OTRO ARCHIVO
+                    </button>
+                  ) : (
+                    <>
+                      <button type="button" onClick={() => cameraInputRef.current?.click()} style={es.btnSmall} disabled={evidenceImages.length >= 5}>
+                        <Camera size={14} /> AGREGAR CAMARA
                       </button>
-                    </div>
-                  </div>
-                ))}
+                      <button type="button" onClick={() => galleryInputRef.current?.click()} style={es.btnSmall} disabled={evidenceImages.length >= 5}>
+                        <ImageIcon size={14} /> AGREGAR GALERIA
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-              <div style={es.actionsRow}>
-                <button onClick={() => cameraInputRef.current?.click()} style={es.btnSmall} disabled={evidenceImages.length >= 5}>
-                  <Camera size={14} /> AGREGAR CAMARA
-                </button>
-                <button onClick={() => galleryInputRef.current?.click()} style={es.btnSmall} disabled={evidenceImages.length >= 5}>
-                  <UploadCloud size={14} /> AGREGAR GALERIA
-                </button>
-              </div>
-            </div>
-          )}
+            )}
 
           {(isAnalyzing || aiFeedback) && (
             <div style={{ ...es.console, borderLeft: `4px solid ${getAiStatusColor(aiFeedback?.type)}` }}>
@@ -285,11 +344,7 @@ export const EvidenceFormScreen = ({
 
           {isPatActivity && (
             <div style={{ marginTop: "14px" }}>
-              <label style={styles.label}>Especificación</label>
-              <label style={styles.label}>Instalación PAT: Ingresar Ohms</label>
-              <label style={styles.label}>Tendido de Conductor: Ingresar medicion (m) de conductor</label>
-              <label style={styles.label}>Conexión de acometida: Ingresar medicion (m) de conductor</label>
-              <label style={styles.label}>Instalación de medidor: Ingresar numero de serie</label>
+              <label style={styles.label}>Resistividad</label>           
               <input
                 type="number"
                 inputMode="decimal"
@@ -298,7 +353,7 @@ export const EvidenceFormScreen = ({
                 value={ohms}
                 onChange={(event) => setOhms(event.target.value)}
                 onFocus={ensureFieldVisibility}
-                placeholder="Ingrese la especificación"
+                placeholder="Ingrese la resistividad"
                 style={styles.input}
               />
             </div>
@@ -306,7 +361,7 @@ export const EvidenceFormScreen = ({
 
           {isSeleccion && Array.isArray(isSeleccion) && (
             <div style={{ marginTop: "14px" }}>
-              <label style={styles.label}>Selección de detalle</label>
+              <label style={styles.label}>Indique si tiene servidumbre</label>
               <select
                 value={ohms}
                 onChange={(event) => setOhms(event.target.value)}

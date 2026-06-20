@@ -51,11 +51,11 @@ export const ActivityConfirmationScreen: React.FC<Props> = ({
 
   const selectionRows = [
     { key: "Proyecto", value: selectedProjectName },
-    { key: "Especialidad", value: selectedItem },
+    { key: "Sección", value: selectedItem },
+    { key: "Especialidad", value: selectedStructureName || selectedDetail?.Nombre_Detalle || null },
     { key: "Frente", value: selectedFrontName },
     { key: "Localidad", value: selectedLocalityName },
     ...(selectedSubstation ? [{ key: "Subestacion", value: selectedSubstation }] : []),
-    { key: "Estructura", value: selectedStructureName || selectedDetail?.Nombre_Detalle || null },
     { key: "Grupo", value: selectedGroup },
     { key: "Actividad", value: selectedActivity?.Nombre_Actividad || null },
   ];

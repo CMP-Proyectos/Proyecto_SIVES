@@ -14,7 +14,7 @@ import {
 } from "../services/offlineSyncService";
 import { saveReportOnline } from "../repositories/reports.repository";
 import { Step, ToastState, ConfirmModalState } from "../features/reportFlow/types";
-import { isCuadroTexto, parseOhmsValue, getOpcionesSeleccion } from "../utils/activity";
+import { isCuadroTexto, parseOhmsValue, getOpcionesSeleccion, isIngresoPorArchivo } from "../utils/activity";
 
 import { useSessionFlow } from "./flow/useSessionFlow";
 import type { SessionUser } from "./flow/useSessionFlow";
@@ -442,6 +442,7 @@ export function useReportFlow() {
 
     const isPatActivity = isCuadroTexto(catalog.selectedActivity);
     const isSelector = getOpcionesSeleccion(catalog.selectedActivity);
+    const isArchivo = isIngresoPorArchivo(catalog.selectedActivity);
     const parsedOhms = parseOhmsValue(evidence.ohms);
     if (isPatActivity && parsedOhms === null) {
       showToast("Ingrese una medicion Ohms valida para PAT", "error");
@@ -468,29 +469,60 @@ export function useReportFlow() {
     const folderLocality = sanitizeName(currentLocality?.Nombre_Localidad || "Sin_Localidad");
     const activityTag = sanitizeName(catalog.selectedActivity?.Nombre_Actividad || "Evidencia").substring(0, 30);
 
+    const driveFolderSection = sanitizeName(catalog.selectedItem || "Sin_Seccion");
+    const driveFolderGroup = sanitizeName(catalog.selectedGroup || "Sin_Grupo");
+    const drivePath = `${driveFolderSection}/${driveFolderGroup}/${activityTag}`;
+
     const sessionUser = session.sessionUser;
     const selectedDetail = catalog.selectedDetail;
 
-    const evidenceFiles = evidence.evidenceFiles.map((file, index) => {
+    const fileToBase64 = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]); // Quitamos la cabecera 'data:application/pdf;base64,'
+        };
+        reader.onerror = (error) => reject(error);
+      });
+    };
+
+    const imageFiles: any[] = [];
+    const docFiles: any[] = [];
+
+    evidence.evidenceFiles.forEach((file, index) => {
       const order = index + 1;
-      const fileName = `${activityTag}_${timestamp}_${order}.jpg`;
-      return {
-        file,
-        order,
-        fileName,
-        path: `${folderProject}/${folderFront}/${folderLocality}/${fileName}`,
-      };
+      const fileExtension = file.name.split('.').pop() || (isArchivo ? 'pdf' : 'jpg');
+      const fileName = `${activityTag}_${timestamp}_${order}.${fileExtension}`;
+
+      if (!isArchivo) {
+        imageFiles.push({
+          file,
+          order,
+          fileName,
+          path: `${folderProject}/${folderFront}/${folderLocality}/${fileName}`,
+          fileType: file.type || "image/jpeg",
+        });
+      } else {
+        docFiles.push({ 
+          file, 
+          fileName, 
+          fileType: file.type || "application/octet-stream" 
+        });
+      }
     });
 
     const persistPendingRecord = async (reason: string) => {
       const pendingRecord = createPendingReportPayload({
         timestamp,
         bucketName: MASTER_BUCKET,
-        evidenceFiles: evidenceFiles.map((image) => ({
+        // Solo guardamos las imagenes para subirlas a Supabase luego
+        evidenceFiles: imageFiles.map((image) => ({
           file: image.file,
           fileName: image.fileName,
           path: image.path,
-          fileType: "image/jpeg",
+          fileType: image.fileType,
         })),
         userId: sessionUser.id,
         detailId: selectedDetail.ID_DetallesActividad,
@@ -500,11 +532,6 @@ export function useReportFlow() {
         ohms: isSelector ? evidence.ohms : (isPatActivity ? parsedOhms : null),
       });
       await savePendingReport(pendingRecord);
-      console.info("[SAVE] Registro guardado localmente en pendingUploads", {
-        reason,
-        timestamp,
-        files: pendingRecord.meta.fileNames?.length || 0,
-      });
       showToast("Guardado localmente (Pendiente)", "info");
       handleGoHome();
     };
@@ -523,14 +550,60 @@ export function useReportFlow() {
         userId: sessionUser.id,
         comment: evidence.note,
         ohms: isSelector ? evidence.ohms : (isPatActivity ? parsedOhms : null),
-        evidenceFiles: evidenceFiles.map((image) => ({
-          file: image.file,
-          order: image.order,
-          fileName: image.fileName,
-          path: image.path,
-          fileType: "image/jpeg",
-        })),
+        evidenceFiles: imageFiles, // Si es archivo, esto irá vacío pero guardará la fila en la BD
       });
+
+      const SUPABASE_URL = 'https://pdfswyaxuomaodfcinke.supabase.co'; 
+      const imageUrls = imageFiles.map(img => `${SUPABASE_URL}/storage/v1/object/public/${MASTER_BUCKET}/${img.path}`);
+      
+      const docFilesBase64 = await Promise.all(docFiles.map(async (doc) => ({
+        fileName: doc.fileName,
+        mimeType: doc.fileType,
+        base64Content: await fileToBase64(doc.file)
+      })));
+
+      if (imageUrls.length > 0 || docFilesBase64.length > 0) {
+        try {
+          const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo9iozEZLvzC9iKOwHGtiJ7b9Hap7Sc-WtYnvGXHl7yp2vJUsI2s3AWHwvEADHHLRx/exec"; 
+          
+          await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+            body: JSON.stringify({
+              // 1. Datos para la ruta
+              section: driveFolderSection,
+              group: driveFolderGroup,
+              activity: activityTag,
+              // 2. Archivos
+              images: imageUrls,
+              documents: docFilesBase64,
+              // 3. Metadata para el TXT y el Excel
+              metadata: {
+                fecha: new Date(timestamp).toLocaleString('es-PE'),
+                correo: sessionUser?.email || "Sin correo",
+                nombre: `${session.profileName || ''} ${session.profileLastName || ''}`.trim() || 'Desconocido',
+                proyecto: currentProject?.Proyecto_Nombre || "Sin Proyecto",
+                seccion: catalog.selectedItem || "Sin_Seccion",
+                frente: currentFront?.Nombre_Frente || "Sin Frente",
+                localidad: currentLocality?.Nombre_Localidad || "Sin Localidad",
+                subestacion: catalog.selectedSubstation || "Sin Subestacion",
+                estructura: catalog.selectedStructure || catalog.selectedDetail?.Nombre_Detalle || "Sin Estructura",
+                grupo: catalog.selectedGroup || "Sin_Grupo",
+                actividad: catalog.selectedActivity?.Nombre_Actividad || "Sin Actividad",
+                latitud: evidence.gpsLocation?.latitude || selectedDetail?.Latitud || 0,
+                longitud: evidence.gpsLocation?.longitude || selectedDetail?.Longitud || 0,
+                comentario: evidence.note || "",
+                ohms: evidence.ohms || ""
+              }
+            })
+          });
+          console.log("[DRIVE] Paquete con metadata enviado exitosamente");
+        } catch (scriptErr) {
+          console.error("[DRIVE] Error al enviar a Drive:", scriptErr);
+          showToast("Registro guardado, pero hubo un retraso al copiar a Drive", "info");
+        }
+      }
+
       await records.loadUserRecords();
       if (saveResult.exceeded) {
         showToast(`Guardado: Se ha superado el metrado (Total: ${saveResult.accumulated})`, "info");
@@ -716,7 +789,7 @@ export function useReportFlow() {
     gpsLocation: evidence.gpsLocation, handleCaptureGps: evidence.handleCaptureGps,
     utmZone: evidence.utmZone, setUtmZone: evidence.setUtmZone, utmEast: evidence.utmEast, setUtmEast: evidence.setUtmEast, utmNorth: evidence.utmNorth, setUtmNorth: evidence.setUtmNorth, handleUpdateFromUtm: evidence.handleUpdateFromUtm,
     evidenceImages: evidence.evidenceImages, evidencePreview: evidence.evidencePreview, handleCaptureFile: evidence.handleCaptureFile, removeEvidenceImage: evidence.removeEvidenceImage, note: evidence.note, setNote: evidence.setNote, isFetchingGps: evidence.isFetchingGps, isAnalyzing: evidence.isAnalyzing, aiFeedback: evidence.aiFeedback,
-    ohms: evidence.ohms, setOhms: evidence.setOhms, isPatActivity: isCuadroTexto(catalog.selectedActivity), isSelector : getOpcionesSeleccion(catalog.selectedActivity),
+    ohms: evidence.ohms, setOhms: evidence.setOhms, isPatActivity: isCuadroTexto(catalog.selectedActivity), isSelector : getOpcionesSeleccion(catalog.selectedActivity), isArchivo : isIngresoPorArchivo(catalog.selectedActivity),
     saveReport, getMapUrl,
     map,
     userRecords: records.userRecords, isLoadingRecords: records.isLoadingRecords, selectedRecordId: records.selectedRecordId, setSelectedRecordId: records.setSelectedRecordId,

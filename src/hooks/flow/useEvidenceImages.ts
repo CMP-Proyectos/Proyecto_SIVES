@@ -54,32 +54,34 @@ export function useEvidenceImages(
     }
   };
 
-  const handleCaptureFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const incomingFiles = Array.from(e.target.files || []);
-    if (incomingFiles.length === 0) return;
-
-    const availableSlots = MAX_EVIDENCE_IMAGES - evidenceImages.length;
-    if (availableSlots <= 0) {
-      showToast("Maximo 5 imagenes por registro", "info");
-      e.target.value = "";
-      return;
-    }
-
-    const filesToAdd = incomingFiles.slice(0, availableSlots);
-    if (incomingFiles.length > filesToAdd.length) {
-      showToast("Solo se agregaron hasta completar 5 imagenes", "info");
-    }
-
-    const nextImages = filesToAdd.map((file, index) => ({
-      id: `${Date.now()}-${evidenceImages.length + index}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
-
-    setEvidenceImages((current) => [...current, ...nextImages]);
-    void analyzeImage(nextImages[0].file);
+const handleCaptureFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const incomingFiles = Array.from(e.target.files || []);
+  if (incomingFiles.length === 0) return;
+  const availableSlots = MAX_EVIDENCE_IMAGES - evidenceImages.length;
+  if (availableSlots <= 0) {
+    showToast("Máximo 5 archivos por registro", "info"); 
     e.target.value = "";
-  };
+    return;
+  }
+  const filesToAdd = incomingFiles.slice(0, availableSlots);
+  if (incomingFiles.length > filesToAdd.length) {
+    showToast("Solo se agregaron hasta completar los 5 espacios", "info");
+  }
+  const nextImages = filesToAdd.map((file, index) => ({
+    id: `${Date.now()}-${evidenceImages.length + index}`,
+    file,
+    previewUrl: URL.createObjectURL(file),
+  }));
+  setEvidenceImages((current) => [...current, ...nextImages]);
+
+  const firstFile = nextImages[0].file;
+  if (firstFile.type.startsWith('image/')) {
+    void analyzeImage(firstFile);
+  } else {
+
+  }
+  e.target.value = "";
+};
 
   const removeEvidenceImage = (imageId: string) => {
     setEvidenceImages((current) => {

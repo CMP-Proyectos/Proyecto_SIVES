@@ -13,9 +13,8 @@ export const isCuadroTexto = (actividad?: {
   const nombre = normalizeText(actividad?.Nombre_Actividad);
 
   return (
-    nombre.includes("instalacion de pat") ||
-    grupo.includes("conductores") ||
-    grupo.includes("acometida")
+    nombre.includes("foto de") &&
+    grupo.includes("resistividad")
   );
 };
 
@@ -25,25 +24,33 @@ export const getOpcionesSeleccion = (actividad?: {
 } | null) => {
   const grupo = normalizeText(actividad?.Grupo);
   const nombre = normalizeText(actividad?.Nombre_Actividad);
-
-  // Caso 1: Armados
-  if (grupo.includes("armados")) {
+  if (grupo.includes("servidumbre") && nombre.includes("llegada a la")) {
     return [
-      { value: "tiene_alargador", label: "Tiene alargador" },
-      { value: "no_tiene_alargador", label: "No tiene alargador" } 
+      { value: "no_servidumbre", label: "No tiene servidumbre" },
+      { value: "si_servidumbre", label: "Si tiene servidumbre" } 
     ];
   }
-
-  // Caso 2: PAT
-  if (nombre.includes("relleno y compactacion de pat")) {
-    return [
-      { value: "sin_cemento", label: "Sin cemento conductivo" },
-      { value: "con_cemento", label: "Con cemento conductivo" }
-    ];
-  }
-
-  // Si no cumple ninguna, no hay selección
   return null; 
+};
+
+export const isIngresoPorArchivo = (actividad?: {
+  Grupo?: string | null;
+  Nombre_Actividad?: string | null;
+} | null) => {
+  const nombre = normalizeText(actividad?.Nombre_Actividad);
+
+  const palabrasClaveArchivo = [
+    "ortofoto",
+    "modelo digital",
+    "excel", 
+    "plano",
+    "laboratorio", 
+    "informe",
+    "autorización",
+    "acta"
+  ];
+
+  return palabrasClaveArchivo.some((palabra) => nombre.includes(palabra));
 };
 
 export const parseOhmsValue = (value: string) => {

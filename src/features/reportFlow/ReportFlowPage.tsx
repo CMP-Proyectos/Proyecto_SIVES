@@ -550,6 +550,7 @@ export default function ReportFlowPage() {
             setOhms={flow.setOhms}
             isPatActivity={flow.isPatActivity}
             isSeleccion = {flow.isSelector}
+            requiereArchivo = {flow.isArchivo}
             isLoading={flow.isLoading}
             onSave={() => {
               flow.saveReport();
