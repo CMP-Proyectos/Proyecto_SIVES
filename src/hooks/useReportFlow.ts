@@ -444,6 +444,7 @@ export function useReportFlow() {
     const isSelector = getOpcionesSeleccion(catalog.selectedActivity);
     const isArchivo = isIngresoPorArchivo(catalog.selectedActivity);
     const parsedOhms = parseOhmsValue(evidence.ohms);
+    
     if (isPatActivity && parsedOhms === null) {
       showToast("Ingrese una medicion Ohms valida para PAT", "error");
       return;
@@ -469,60 +470,37 @@ export function useReportFlow() {
     const folderLocality = sanitizeName(currentLocality?.Nombre_Localidad || "Sin_Localidad");
     const activityTag = sanitizeName(catalog.selectedActivity?.Nombre_Actividad || "Evidencia").substring(0, 30);
 
-    const driveFolderSection = sanitizeName(catalog.selectedItem || "Sin_Seccion");
-    const driveFolderGroup = sanitizeName(catalog.selectedGroup || "Sin_Grupo");
-    const drivePath = `${driveFolderSection}/${driveFolderGroup}/${activityTag}`;
-
     const sessionUser = session.sessionUser;
     const selectedDetail = catalog.selectedDetail;
 
-    const fileToBase64 = (file: File): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-          const result = reader.result as string;
-          resolve(result.split(',')[1]); // Quitamos la cabecera 'data:application/pdf;base64,'
-        };
-        reader.onerror = (error) => reject(error);
-      });
-    };
-
-    const imageFiles: any[] = [];
-    const docFiles: any[] = [];
+    // 1. Unificamos TODO en un solo arreglo (Fotos y Archivos) para Supabase
+    const allEvidenceFiles: any[] = [];
 
     evidence.evidenceFiles.forEach((file, index) => {
       const order = index + 1;
+      // Si es un archivo forzamos extensión basada en el nombre o asumiendo el tipo
       const fileExtension = file.name.split('.').pop() || (isArchivo ? 'pdf' : 'jpg');
       const fileName = `${activityTag}_${timestamp}_${order}.${fileExtension}`;
 
-      if (!isArchivo) {
-        imageFiles.push({
-          file,
-          order,
-          fileName,
-          path: `${folderProject}/${folderFront}/${folderLocality}/${fileName}`,
-          fileType: file.type || "image/jpeg",
-        });
-      } else {
-        docFiles.push({ 
-          file, 
-          fileName, 
-          fileType: file.type || "application/octet-stream" 
-        });
-      }
+      allEvidenceFiles.push({
+        file,
+        order,
+        fileName,
+        path: `${folderProject}/${folderFront}/${folderLocality}/${fileName}`,
+        fileType: file.type || (isArchivo ? "application/octet-stream" : "image/jpeg"),
+      });
     });
 
+    // 2. Preparar el guardado offline por si falla la red
     const persistPendingRecord = async (reason: string) => {
       const pendingRecord = createPendingReportPayload({
         timestamp,
         bucketName: MASTER_BUCKET,
-        // Solo guardamos las imagenes para subirlas a Supabase luego
-        evidenceFiles: imageFiles.map((image) => ({
-          file: image.file,
-          fileName: image.fileName,
-          path: image.path,
-          fileType: image.fileType,
+        evidenceFiles: allEvidenceFiles.map((ev) => ({
+          file: ev.file,
+          fileName: ev.fileName,
+          path: ev.path,
+          fileType: ev.fileType,
         })),
         userId: sessionUser.id,
         detailId: selectedDetail.ID_DetallesActividad,
@@ -542,6 +520,7 @@ export function useReportFlow() {
         return;
       }
 
+      // 3. Subir directamente a Supabase
       const saveResult = await saveReportOnline({
         bucket: MASTER_BUCKET,
         detailId: selectedDetail.ID_DetallesActividad,
@@ -550,67 +529,18 @@ export function useReportFlow() {
         userId: sessionUser.id,
         comment: evidence.note,
         ohms: isSelector ? evidence.ohms : (isPatActivity ? parsedOhms : null),
-        evidenceFiles: imageFiles, // Si es archivo, esto irá vacío pero guardará la fila en la BD
+        evidenceFiles: allEvidenceFiles, // Enviamos absolutamente todo por aquí
       });
 
-      const SUPABASE_URL = 'https://pdfswyaxuomaodfcinke.supabase.co'; 
-      const imageUrls = imageFiles.map(img => `${SUPABASE_URL}/storage/v1/object/public/${MASTER_BUCKET}/${img.path}`);
-      
-      const docFilesBase64 = await Promise.all(docFiles.map(async (doc) => ({
-        fileName: doc.fileName,
-        mimeType: doc.fileType,
-        base64Content: await fileToBase64(doc.file)
-      })));
-
-      if (imageUrls.length > 0 || docFilesBase64.length > 0) {
-        try {
-          const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo9iozEZLvzC9iKOwHGtiJ7b9Hap7Sc-WtYnvGXHl7yp2vJUsI2s3AWHwvEADHHLRx/exec"; 
-          
-          await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-            body: JSON.stringify({
-              // 1. Datos para la ruta
-              section: driveFolderSection,
-              group: driveFolderGroup,
-              activity: activityTag,
-              // 2. Archivos
-              images: imageUrls,
-              documents: docFilesBase64,
-              // 3. Metadata para el TXT y el Excel
-              metadata: {
-                fecha: new Date(timestamp).toLocaleString('es-PE'),
-                correo: sessionUser?.email || "Sin correo",
-                nombre: `${session.profileName || ''} ${session.profileLastName || ''}`.trim() || 'Desconocido',
-                proyecto: currentProject?.Proyecto_Nombre || "Sin Proyecto",
-                seccion: catalog.selectedItem || "Sin_Seccion",
-                frente: currentFront?.Nombre_Frente || "Sin Frente",
-                localidad: currentLocality?.Nombre_Localidad || "Sin Localidad",
-                subestacion: catalog.selectedSubstation || "Sin Subestacion",
-                estructura: catalog.selectedStructure || catalog.selectedDetail?.Nombre_Detalle || "Sin Estructura",
-                grupo: catalog.selectedGroup || "Sin_Grupo",
-                actividad: catalog.selectedActivity?.Nombre_Actividad || "Sin Actividad",
-                latitud: evidence.gpsLocation?.latitude || selectedDetail?.Latitud || 0,
-                longitud: evidence.gpsLocation?.longitude || selectedDetail?.Longitud || 0,
-                comentario: evidence.note || "",
-                ohms: evidence.ohms || ""
-              }
-            })
-          });
-          console.log("[DRIVE] Paquete con metadata enviado exitosamente");
-        } catch (scriptErr) {
-          console.error("[DRIVE] Error al enviar a Drive:", scriptErr);
-          showToast("Registro guardado, pero hubo un retraso al copiar a Drive", "info");
-        }
-      }
-
       await records.loadUserRecords();
+      
       if (saveResult.exceeded) {
         showToast(`Guardado: Se ha superado el metrado (Total: ${saveResult.accumulated})`, "info");
       } else {
         showToast("Reporte guardado exitosamente", "success");
       }
       handleGoHome();
+      
     } catch (err) {
       if (isNetworkUnavailableError(err)) {
         console.warn("[SAVE] Error de red detectado; aplicando fallback a pendingUploads", err);
@@ -620,7 +550,9 @@ export function useReportFlow() {
 
       console.error(err);
       showToast("Error al guardar", "error");
-    } finally { session.setIsLoading(false); }
+    } finally { 
+      session.setIsLoading(false); 
+    }
   };
 
   const selectProject = (id: number) => {
