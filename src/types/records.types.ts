@@ -25,6 +25,8 @@ export interface UserRecord {
   total_imagenes?: number;
   cantidad: number;
   ohms?: number | null;
+  supervisor: number | null;
+  especialista: number | null;
 }
 
 export type CreateRegistroPayload = {
@@ -36,6 +38,8 @@ export type CreateRegistroPayload = {
   Ruta_Archivo: string;
   Bucket: string;
   Ohms?: number | null | string;
+  supervisor: number | null;
+  especialista: number | null;
 };
 
 export type RegistroImagenPayload = {
@@ -59,6 +63,8 @@ export type RegistroRow = {
   user_id: string | null;
   id_proyecto: number | null;
   Ohms: number | null;
+  Supervisor: number | null;
+  Especialista: number | null;
 };
 
 export type CheckedActivityRow = {

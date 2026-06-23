@@ -587,6 +587,7 @@ export default function ReportFlowPage() {
             onSelectRecord={flow.setSelectedRecordId}
             onDelete={(record) => flow.requestDeleteRecord(record)}
             onEdit={flow.openEditModal}
+            actualizarEstado={flow.actualizarEstadoVerificacion}
           />
         )}
 

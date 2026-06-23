@@ -1,6 +1,7 @@
 import React from 'react';
 import { styles } from '../../../theme/styles';
 import type { UserRecord } from '../../../types/records.types';
+import { useReportFlow } from "../../../hooks/useReportFlow";
 
 interface Props {
   records: UserRecord[];
@@ -9,10 +10,15 @@ interface Props {
   onSelectRecord: (id: number | null) => void;
   onDelete: (rec: UserRecord) => void;
   onEdit: () => void;
+  actualizarEstado: (
+    idRegistro: number, 
+    tipoColumna: 'Supervisor' | 'Especialista', 
+    valorActual: number | null
+  ) => Promise<void>;
 }
 
 export const UserGalleryScreen = ({
-    records, isLoading, selectedRecordId, onSelectRecord, onDelete, onEdit
+    records, isLoading, selectedRecordId, onSelectRecord, onDelete, onEdit, actualizarEstado
 }: Props) => {
   const buildCombinedLabel = (...values: (string | null | undefined)[]) => {
     const filteredValues = values.map((value) => value?.trim()).filter(Boolean);
@@ -21,6 +27,29 @@ export const UserGalleryScreen = ({
 
   const getPrimaryRecordLabel = (record: UserRecord) => buildCombinedLabel(record.nombre_grupo, record.nombre_detalle);
   const getActivityDetailLabel = (record: UserRecord) => buildCombinedLabel(record.nombre_actividad, record.nombre_detalle);
+  const getVerificado = (numero: number | null) => {
+    if (numero === 1) return "Verificado";
+    if (numero === 0) return "No verificado";
+    
+    return "Sin verificar";
+    };
+
+  const handleToggleVerificacion = async (
+    idRegistro: number, 
+    tipo: 'Supervisor' | 'Especialista', 
+    valorActual: number | null
+  ) => {
+    try {
+      await actualizarEstado(idRegistro, tipo, valorActual);
+      alert(`Estado de ${tipo} actualizado correctamente`); 
+    } catch (error) {
+      alert("Hubo un error al actualizar el estado");
+    }
+  };
+
+  const flow = useReportFlow();
+  const isSupervisor = flow.sessionUser?.app_metadata?.es_supervisor === true;
+  const isEspecialista = flow.sessionUser?.app_metadata?.es_especialista === true;
 
   React.useEffect(() => {
     console.info("[records] UserGalleryScreen render", {
@@ -110,7 +139,7 @@ export const UserGalleryScreen = ({
                         </div>
 
                         <div>
-                            <label style={styles.label}>ÍTEM</label>
+                            <label style={styles.label}>Sección</label>
                             <div style={styles.text}>{rec.nombre_item || "---"}</div>
                         </div>
 
@@ -120,7 +149,7 @@ export const UserGalleryScreen = ({
                         </div>
 
                         <div>
-                            <label style={styles.label}>ACTIVIDAD / DETALLE</label>
+                            <label style={styles.label}>ACTIVIDAD / Especialidad</label>
                             <div style={styles.text}>{activityDetailLabel}</div>
                         </div>
 
@@ -141,6 +170,49 @@ export const UserGalleryScreen = ({
                             }}>
                                 {rec.comentario || "Sin observaciones."}
                             </div>
+                        </div>
+                        <div>
+                            <label style={styles.label}>Supervisor</label>
+                            <div style={styles.text}>{getVerificado(rec.supervisor)}</div>
+                            {isSupervisor && (
+                                <button 
+                                    onClick={() => handleToggleVerificacion(rec.id_registro, 'Supervisor', rec.supervisor)}
+                                    style={{
+                                        marginTop: '8px',
+                                        padding: '6px 12px',
+                                        backgroundColor: rec.supervisor === 1 ? '#EF4444' : '#10B981', // Rojo si ya está verificado, Verde si no
+                                        color: 'white',
+                                        border: 'none',                                            borderRadius: '4px',
+                                        fontSize: '12px',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {rec.supervisor === 1 ? 'Anular Verificación' : 'Verificar como Supervisor'}
+                                </button>
+                            )}
+                        </div>
+                        <div>
+                            <label style={styles.label}>Especialista</label>
+                            <div style={styles.text}>{getVerificado(rec.especialista)}</div>
+                            {isEspecialista && (
+                                <button 
+                                    onClick={() => handleToggleVerificacion(rec.id_registro, 'Especialista', rec.especialista)} 
+                                    style={{
+                                        marginTop: '8px',
+                                        padding: '6px 12px',
+                                        backgroundColor: rec.especialista === 1 ? '#EF4444' : '#3B82F6', // Rojo si ya está verificado, Azul si no
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        fontSize: '12px',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {rec.especialista === 1 ? 'Anular Verificación' : 'Verificar como Especialista'}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

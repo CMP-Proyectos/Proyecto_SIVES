@@ -11,6 +11,11 @@ type AuthMessage = {
 export type SessionUser = {
   email: string;
   id: string;
+  app_metadata?: {
+    es_supervisor?: boolean;
+    es_especialista?: boolean;
+    [key: string]: any;
+  };
 };
 
 export function useSessionFlow(
@@ -33,6 +38,7 @@ export function useSessionFlow(
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const initialSessionCheckStartedRef = useRef(false);
 
+  
   const refreshConnectivityStatus = useCallback(async (origin: string) => {
     if (typeof navigator === "undefined") return;
 
@@ -63,7 +69,11 @@ export function useSessionFlow(
       if (error) throw error;
 
       const nextUser = data.session?.user
-        ? { email: data.session.user.email || "", id: data.session.user.id }
+        ? { 
+            email: data.session.user.email || "", 
+            id: data.session.user.id,
+            app_metadata: data.session.user.app_metadata
+          }
         : null;
 
       console.info("[AUTH] Resultado de getSession", {
@@ -96,7 +106,11 @@ export function useSessionFlow(
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, currentSession) => {
       const nextUser = currentSession?.user
-        ? { email: currentSession.user.email || "", id: currentSession.user.id }
+        ? { 
+            email: currentSession.user.email || "", 
+            id: currentSession.user.id,
+            app_metadata: currentSession.user.app_metadata 
+          }
         : null;
 
       console.info("[AUTH] Auth state change", {
@@ -153,7 +167,7 @@ export function useSessionFlow(
           showToast("Verifica tu correo", "info");
           return;
         }
-        authenticatedUser = { email: data.user.email || "", id: data.user.id };
+        authenticatedUser = { email: data.user.email || "", id: data.user.id, app_metadata: data.user.app_metadata };
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: authEmail.trim(),
@@ -161,7 +175,7 @@ export function useSessionFlow(
         });
         if (error) throw error;
         if (data.user) {
-          authenticatedUser = { email: data.user.email || "", id: data.user.id };
+          authenticatedUser = { email: data.user.email || "", id: data.user.id, app_metadata: data.user.app_metadata };
         }
       }
 

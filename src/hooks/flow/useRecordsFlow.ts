@@ -137,6 +137,8 @@ export function useRecordsFlow(
       "Latitud",
       "Longitud",
       "Cantidad",
+      "Supervisor",
+      "Especialista",
     ];
 
     const rows = records.map((rec) => {
@@ -157,6 +159,8 @@ export function useRecordsFlow(
         rec.latitud,
         rec.longitud,
         rec.cantidad,
+        rec.supervisor,
+        rec.especialista,
       ].join(";");
     });
 

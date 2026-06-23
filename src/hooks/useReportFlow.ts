@@ -6,6 +6,7 @@ import {
   joinProjectWithCode,
 } from "../services/dataService";
 import { db } from "../services/db_local";
+import { supabase } from "../services/dataService";
 import {
   createPendingReportPayload,
   getPendingReports,
@@ -65,6 +66,30 @@ export function useReportFlow() {
     loadUserRecords,
     showToast,
   });
+
+  const actualizarEstadoVerificacion = async (
+  idRegistro: number, 
+  tipoColumna: 'Supervisor' | 'Especialista', 
+  valorActual: number | null
+) => {
+  const nuevoValor = valorActual === 1 ? 0 : 1;
+
+  const { data, error } = await supabase
+    .from('Registros')
+    .update({ 
+      [tipoColumna]: nuevoValor
+    })
+    .eq('ID_Registros', idRegistro)
+    .select()
+    .single();
+
+  if (error) {
+    console.error(`Error actualizando verificación de ${tipoColumna}:`, error);
+    throw error;
+  }
+
+  return data;
+};
 
   const syncStatus = isOnline ? "ONLINE" : "OFFLINE";
   const [cachedHistoryDetailIds, setCachedHistoryDetailIds] = useState<number[]>([]);
@@ -654,6 +679,7 @@ export function useReportFlow() {
 
 
   return {
+    actualizarEstadoVerificacion,
     step, setStep, isMenuOpen, setIsMenuOpen, toast, confirmModal, setConfirmModal,
     isOnline: session.isOnline, syncStatus,
     isLoading: session.isLoading, sessionUser: session.sessionUser,

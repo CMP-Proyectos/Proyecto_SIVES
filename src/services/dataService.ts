@@ -406,7 +406,7 @@ export const fetchUserRecords = async (userId: string): Promise<UserRecord[]> =>
 
   const { data: registros, error: registrosError } = await supabase
     .from("Registros")
-    .select("ID_Registros, Fecha_Subida, URL_Archivo, Comentario, Ruta_Archivo, Bucket, ID_Verificada, user_id, id_proyecto, Ohms")
+    .select("ID_Registros, Fecha_Subida, URL_Archivo, Comentario, Ruta_Archivo, Bucket, ID_Verificada, user_id, id_proyecto, Ohms, Especialista, Supervisor")
     .eq("user_id", userId)
     .order("Fecha_Subida", { ascending: false });
 
@@ -499,6 +499,8 @@ export const fetchUserRecords = async (userId: string): Promise<UserRecord[]> =>
       total_imagenes: imageCountByRecordId.get(record.ID_Registros) || (record.URL_Archivo ? 1 : 0),
       cantidad: checked?.Cantidad ?? 0,
       ohms: record.Ohms ?? null,
+      supervisor: record.Supervisor,
+      especialista: record.Especialista,
     };
   });
 
@@ -573,6 +575,8 @@ const normalizeGlobalMapRow = (row: GlobalMapRpcRow): MapRecord | null => {
     getValueByAliases(row, ["nombre_subestacion", "subestacion", "Subestacion"])
   );
   const ohms = toNullableNumber(getValueByAliases(row, ["ohms", "Ohms", "OHMS"]));
+  const especialista = toNullableNumber(getValueByAliases(row, ["especialista", "Especialista", "ESPECIALISTA"]))
+  const supervisor = toNullableNumber(getValueByAliases(row, ["supervisor", "Supervisor", "SUPERVISOR"]))
 
   if (!idRegistro || !fechaSubida || !nombreLocalidad || !nombreDetalle || !nombreActividad) {
     return null;
@@ -613,6 +617,8 @@ const normalizeGlobalMapRow = (row: GlobalMapRpcRow): MapRecord | null => {
     ) || 0,
     cantidad: toNullableNumber(getValueByAliases(row, ["cantidad", "Cantidad"])) || 0,
     ohms,
+    especialista,
+    supervisor,
     source: "global",
   };
 };
