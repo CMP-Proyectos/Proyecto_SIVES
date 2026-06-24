@@ -80,8 +80,6 @@ const insertReportRecord = async (params: {
     Comentario: params.comment,
     Ruta_Archivo: params.mainImage.Ruta_Archivo,
     Bucket: params.bucket,
-    especialista,
-    supervisor,
     Ohms: params.ohms ?? null,
   });
 };

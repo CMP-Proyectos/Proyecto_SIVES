@@ -129,6 +129,11 @@ export const UserGalleryScreen = ({
                         </div>
 
                         <div>
+                            <label style={styles.label}>Enlace</label>
+                            <div style={styles.text}>{rec.url_foto}</div>
+                        </div>
+
+                        <div>
                             <label style={styles.label}>FRENTE</label>
                             <div style={styles.text}>{rec.nombre_frente || "---"}</div>
                         </div>
