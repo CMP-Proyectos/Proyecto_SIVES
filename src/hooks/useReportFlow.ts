@@ -15,7 +15,7 @@ import {
 } from "../services/offlineSyncService";
 import { saveReportOnline } from "../repositories/reports.repository";
 import { Step, ToastState, ConfirmModalState } from "../features/reportFlow/types";
-import { isCuadroTexto, parseOhmsValue, getOpcionesSeleccion, isIngresoPorArchivo } from "../utils/activity";
+import { isCuadroTexto, parseOhmsValue, getOpcionesSeleccion, isIngresoPorArchivo, requiereCoordenadas, isRegistroUsuarios } from "../utils/activity";
 
 import { useSessionFlow } from "./flow/useSessionFlow";
 import type { SessionUser } from "./flow/useSessionFlow";
@@ -468,6 +468,8 @@ export function useReportFlow() {
     const isPatActivity = isCuadroTexto(catalog.selectedActivity);
     const isSelector = getOpcionesSeleccion(catalog.selectedActivity);
     const isArchivo = isIngresoPorArchivo(catalog.selectedActivity);
+    const isCoordenadas = requiereCoordenadas(catalog.selectedActivity);
+    const isRegistro = isRegistroUsuarios(catalog.selectedActivity);
     const parsedOhms = parseOhmsValue(evidence.ohms);
     
     if (isPatActivity && parsedOhms === null) {
@@ -497,13 +499,12 @@ export function useReportFlow() {
 
     const sessionUser = session.sessionUser;
     const selectedDetail = catalog.selectedDetail;
+    const selectedPredio = catalog.selectedPredios;
 
-    // 1. Unificamos TODO en un solo arreglo (Fotos y Archivos) para Supabase
     const allEvidenceFiles: any[] = [];
 
     evidence.evidenceFiles.forEach((file, index) => {
       const order = index + 1;
-      // Si es un archivo forzamos extensión basada en el nombre o asumiendo el tipo
       const fileExtension = file.name.split('.').pop() || (isArchivo ? 'pdf' : 'jpg');
       const fileName = `${activityTag}_${timestamp}_${order}.${fileExtension}`;
 
@@ -736,6 +737,10 @@ export function useReportFlow() {
     toggleGroupExpanded: catalog.toggleGroupExpanded,
 
     selectedDetail: catalog.selectedDetail,
+    predios: catalog.predios,
+    selectedPredios : catalog.selectedPredios,
+    setSelectedPredios : catalog.setSelectedPredios,
+    prediosForCurrentLocality : catalog.prediosForCurrentLocality,
     selectedActivity: catalog.selectedActivity,
     filteredActivities: catalog.filteredActivities,
     activitiesWithPreviousRecords,
@@ -747,7 +752,7 @@ export function useReportFlow() {
     gpsLocation: evidence.gpsLocation, handleCaptureGps: evidence.handleCaptureGps,
     utmZone: evidence.utmZone, setUtmZone: evidence.setUtmZone, utmEast: evidence.utmEast, setUtmEast: evidence.setUtmEast, utmNorth: evidence.utmNorth, setUtmNorth: evidence.setUtmNorth, handleUpdateFromUtm: evidence.handleUpdateFromUtm,
     evidenceImages: evidence.evidenceImages, evidencePreview: evidence.evidencePreview, handleCaptureFile: evidence.handleCaptureFile, removeEvidenceImage: evidence.removeEvidenceImage, note: evidence.note, setNote: evidence.setNote, isFetchingGps: evidence.isFetchingGps, isAnalyzing: evidence.isAnalyzing, aiFeedback: evidence.aiFeedback,
-    ohms: evidence.ohms, setOhms: evidence.setOhms, isPatActivity: isCuadroTexto(catalog.selectedActivity), isSelector : getOpcionesSeleccion(catalog.selectedActivity), isArchivo : isIngresoPorArchivo(catalog.selectedActivity),
+    ohms: evidence.ohms, setOhms: evidence.setOhms, isPatActivity: isCuadroTexto(catalog.selectedActivity), isSelector : getOpcionesSeleccion(catalog.selectedActivity), isArchivo : isIngresoPorArchivo(catalog.selectedActivity), isCoordenadas : requiereCoordenadas(catalog.selectedActivity), isRegistro : isRegistroUsuarios(catalog.selectedActivity),
     saveReport, getMapUrl,
     map,
     userRecords: records.userRecords, isLoadingRecords: records.isLoadingRecords, selectedRecordId: records.selectedRecordId, setSelectedRecordId: records.setSelectedRecordId,

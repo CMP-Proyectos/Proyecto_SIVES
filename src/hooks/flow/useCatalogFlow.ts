@@ -6,6 +6,7 @@ import {
   getLocalitiesByFrontIds,
   getDetailsByLocalityIds,
   getActivitiesByIds,
+  getPrediosByLocalityIds,
   clearCatalogCache,
   hasSupabaseConnectivity,
   isNetworkUnavailableError,
@@ -15,6 +16,7 @@ import {
   LocalityRecord,
   DetailRecord,
   ActivityRecord,
+  PrediosRecord,
 } from "../../services/dataService";
 import {
   buildCatalogHierarchySnapshot,
@@ -40,6 +42,7 @@ export function useCatalogFlow(isOnline: boolean) {
   const [localities, setLocalities] = useState<LocalityRecord[]>([]);
   const [details, setDetails] = useState<DetailRecord[]>([]);
   const [activities, setActivities] = useState<ActivityRecord[]>([]);
+  const [predios, setPredios] = useState<PrediosRecord[]>([]);
 
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [selectedFrontId, setSelectedFrontId] = useState<number | null>(null);
@@ -50,6 +53,7 @@ export function useCatalogFlow(isOnline: boolean) {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<ActivityRecord | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<DetailWithActivity | null>(null);
+  const [selectedPredios, setSelectedPredios] = useState<PrediosRecord | null>(null);
 
   const [localitySearch, setLocalitySearch] = useState("");
   const [itemSearch, setItemSearch] = useState("");
@@ -125,6 +129,7 @@ export function useCatalogFlow(isOnline: boolean) {
         const scopedLocalities = await getLocalitiesByFrontIds(frontIds);
         const localityIds = scopedLocalities.map((locality) => locality.ID_Localidad);
 
+        const scopedPredios = await getPrediosByLocalityIds(localityIds);
         const scopedDetails = await getDetailsByLocalityIds(localityIds);
         const activityIds = Array.from(new Set(scopedDetails.map((detail) => detail.ID_Actividad)));
 
@@ -139,6 +144,7 @@ export function useCatalogFlow(isOnline: boolean) {
           fronts: scopedFronts.length,
           localities: scopedLocalities.length,
           details: scopedDetails.length,
+          predios: scopedPredios.length,
           activities: scopedActivities.length,
         });
 
@@ -157,6 +163,7 @@ export function useCatalogFlow(isOnline: boolean) {
         await db.catalog_fronts.bulkPut(scopedFronts);
         await db.catalog_localities.bulkPut(scopedLocalities);
         await db.catalog_details.bulkPut(scopedDetails);
+        await db.catalog_predios.bulkPut(scopedPredios);
         await db.catalog_activities.bulkPut(scopedActivities);
         markCatalogSyncSuccess();
 
@@ -216,10 +223,15 @@ export function useCatalogFlow(isOnline: boolean) {
       localityIds.length > 0
         ? await db.catalog_details.where("ID_Localidad").anyOf(localityIds).toArray()
         : [];
+    const projectPredios =
+      localityIds.length > 0
+        ? await db.catalog_predios.where("ID_Localidad").anyOf(localityIds).toArray()
+        : [];
 
     setFronts(projectFronts.sort((left, right) => sortByLabel(left.Nombre_Frente, right.Nombre_Frente)));
     setLocalities(projectLocalities.sort((left, right) => sortByLabel(left.Nombre_Localidad, right.Nombre_Localidad)));
     setDetails(projectDetails.sort((left, right) => sortByLabel(left.Nombre_Detalle, right.Nombre_Detalle)));
+    setPredios(projectPredios.sort((left, right) => sortByLabel(left.Nombre_Padron, right.Nombre_Padron)));
   }, []);
 
   const hierarchy = useMemo(
@@ -228,6 +240,7 @@ export function useCatalogFlow(isOnline: boolean) {
         fronts,
         localities,
         details,
+        predios,
         activities,
         selectedItem,
         selectedFrontId,
@@ -246,6 +259,7 @@ export function useCatalogFlow(isOnline: boolean) {
       activities,
       detailSearch,
       details,
+      predios,
       fronts,
       groupSearch,
       itemSearch,
@@ -274,6 +288,7 @@ export function useCatalogFlow(isOnline: boolean) {
     filteredStructures,
     detailsForCurrentStructure,
     detailsForCurrentLocality,
+    prediosForCurrentLocality,
     groups,
     filteredGroups,
     filteredActivities,
@@ -296,6 +311,7 @@ export function useCatalogFlow(isOnline: boolean) {
       setSelectedGroup(null);
       setSelectedActivity(null);
       setSelectedDetail(null);
+      setSelectedPredios(null);
       setLocalitySearch("");
       setItemSearch("");
       setSubstationSearch("");
@@ -316,6 +332,7 @@ const selectItem = useCallback((item: string) => {
     setSelectedGroup(null);
     setSelectedActivity(null);
     setSelectedDetail(null);
+    setSelectedPredios(null);
   }, []);
 
 const selectStructure = useCallback((structure: string) => {
@@ -326,6 +343,7 @@ const selectStructure = useCallback((structure: string) => {
     setSelectedGroup(null);
     setSelectedActivity(null);
     setSelectedDetail(null);
+    setSelectedPredios(null);
   }, []);
 
 const selectFront = useCallback((frontId: number) => {
@@ -335,6 +353,7 @@ const selectFront = useCallback((frontId: number) => {
     setSelectedGroup(null);
     setSelectedActivity(null);
     setSelectedDetail(null);
+    setSelectedPredios(null);
   }, []);
 
 const selectLocality = useCallback((localityId: number) => {
@@ -343,6 +362,7 @@ const selectLocality = useCallback((localityId: number) => {
     setSelectedGroup(null);
     setSelectedActivity(null);
     setSelectedDetail(null);
+    setSelectedPredios(null);
     setSubstationSearch("");
     setGroupSearch("");
     setDetailSearch("");
@@ -354,6 +374,7 @@ const selectSubstation = useCallback((substation: string) => {
     setSelectedGroup(null);
     setSelectedActivity(null);
     setSelectedDetail(null);
+    setSelectedPredios(null);
     setGroupSearch("");
     setDetailSearch("");
     setExpandedGroups({});
@@ -363,6 +384,7 @@ const selectGroup = useCallback((group: string) => {
     setSelectedGroup(group);
     setSelectedActivity(null);
     setSelectedDetail(null);
+    setSelectedPredios(null);
     setExpandedGroups({});
   }, []);
 
@@ -410,6 +432,7 @@ const selectGroup = useCallback((group: string) => {
     setFronts([]);
     setLocalities([]);
     setDetails([]);
+    setPredios([]);
   };
 
   return {
@@ -428,6 +451,8 @@ const selectGroup = useCallback((group: string) => {
     structures,
     filteredStructures,
     detailsForCurrentLocality,
+    predios,
+    prediosForCurrentLocality,
     groups,
     filteredGroups,
     filteredActivities,
@@ -440,6 +465,8 @@ const selectGroup = useCallback((group: string) => {
     selectedGroup,
     selectedActivity,
     selectedDetail,
+    selectedPredios,
+    setSelectedPredios,
     localitySearch,
     setLocalitySearch,
     itemSearch,

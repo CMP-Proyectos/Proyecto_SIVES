@@ -544,6 +544,9 @@ export default function ReportFlowPage() {
             aiFeedback={flow.aiFeedback}
             onCaptureFile={flow.handleCaptureFile}
             onRemoveImage={flow.removeEvidenceImage}
+            prediosList = {flow.prediosForCurrentLocality}
+            predio = {flow.selectedPredios}
+            setPredio = {flow.setSelectedPredios}
             note={flow.note}
             setNote={flow.setNote}
             ohms={flow.ohms}
@@ -551,6 +554,8 @@ export default function ReportFlowPage() {
             isPatActivity={flow.isPatActivity}
             isSeleccion = {flow.isSelector}
             requiereArchivo = {flow.isArchivo}
+            isCoordenadas = {flow.isCoordenadas}
+            isRegistro = {flow.isRegistro}
             isLoading={flow.isLoading}
             onSave={() => {
               flow.saveReport();

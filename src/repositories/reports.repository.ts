@@ -70,6 +70,8 @@ const insertReportRecord = async (params: {
   ohms?: number | null | string;
   mainImage: UploadedReportImage;
 }) => {
+  const especialista = null
+  const supervisor = null
   return createRegistro({
     Nombre_Archivo: params.mainImage.Nombre_Archivo,
     URL_Archivo: params.mainImage.URL_Archivo,
@@ -78,6 +80,8 @@ const insertReportRecord = async (params: {
     Comentario: params.comment,
     Ruta_Archivo: params.mainImage.Ruta_Archivo,
     Bucket: params.bucket,
+    especialista,
+    supervisor,
     Ohms: params.ohms ?? null,
   });
 };

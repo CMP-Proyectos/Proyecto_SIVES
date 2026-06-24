@@ -1,7 +1,17 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { styles, evidenceStyles as es } from '../../../theme/styles';
 import { EvidenceImage } from '../types';
 import { FileText, FileUp, RefreshCw, Navigation, MapPin, Camera, Image as ImageIcon, UploadCloud, AlertCircle, Trash2 } from 'lucide-react';
+import {
+  PrediosRecord,
+} from "../../../services/dataService";
+
+export interface RegistroUsuariosData {
+  tipoUsuario: string;
+  dni: string;
+  nombre: string;
+  tipoPredio: string;
+}
 
 interface Props {
   isOnline: boolean;
@@ -19,13 +29,19 @@ interface Props {
   isAnalyzing: boolean;
   aiFeedback: { type: 'warning' | 'info' | 'success', message: string } | null;
   onCaptureFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  registroData?: RegistroUsuariosData;
+  setRegistroData?: (data: RegistroUsuariosData) => void;
+  prediosList?: PrediosRecord[];
+  predio: PrediosRecord | null; setPredio: (v: PrediosRecord | null) => void;
   onRemoveImage: (imageId: string) => void;
   note: string; setNote: (v: string) => void;
   ohms: string; setOhms: (v: string) => void;
   isPatActivity: boolean;
   isSeleccion: { value: string; label: string }[] | null;
   requiereArchivo: boolean;
+  isCoordenadas: boolean;
   isLoading: boolean;
+  isRegistro: boolean;
   onSave: () => void;
   previousRecord?: any;
 }
@@ -37,13 +53,45 @@ export const EvidenceFormScreen = ({
   isFetchingGps, onCaptureGps,
   utmZone, setUtmZone, utmEast, setUtmEast, utmNorth, setUtmNorth, onUpdateUtm,
   evidenceImages, evidencePreview, isAnalyzing, aiFeedback, onCaptureFile, onRemoveImage,
-  note, setNote, ohms, setOhms, isPatActivity, isSeleccion, requiereArchivo,
+  predio, setPredio, prediosList = [], registroData, setRegistroData, note, setNote, ohms, setOhms, isPatActivity, isSeleccion, requiereArchivo,isCoordenadas, isRegistro,
   isLoading, onSave,
   previousRecord
 }: Props) => {
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const [geoMode, setGeoMode] = useState<'gps' | 'utm'>('gps');
+  
+  const [localRegistro, setLocalRegistro] = useState<RegistroUsuariosData>({
+    tipoUsuario: '',
+    dni: '',
+    nombre: '',
+    tipoPredio: ''
+  });
+  const activeRegistro = registroData || localRegistro;
+  const updateRegistro = (key: keyof RegistroUsuariosData, value: string) => {
+    const updated = { ...activeRegistro, [key]: value };
+    if (setRegistroData) setRegistroData(updated);
+    else setLocalRegistro(updated);
+  };
+
+  useEffect(() => {
+    if (predio && activeRegistro.tipoUsuario === 'dni') {
+      // Actualizamos ambos valores de un solo golpe para evitar que 
+      // React sobrescriba el estado en la misma renderización
+      const updatedState = {
+        ...activeRegistro,
+        nombre: predio.Nombre_Padron || '',
+        dni: predio.DNI_Padron || ''
+      };
+        
+      if (setRegistroData) {
+        setRegistroData(updatedState);
+      } else {
+        setLocalRegistro(updatedState);
+      }
+    }
+  }, [predio]);
+  
   const formCardStyle = {
     ...styles.card,
     maxHeight: 'none' as const,
@@ -137,71 +185,160 @@ export const EvidenceFormScreen = ({
         </div>
         )}
 
-        <div style={formCardStyle}>
-        <div style={{ ...styles.flexBetween, ...styles.mb16 }}>
-          <h3 style={es.headerClean}>1. Ubicacion Geodesica</h3>
-          <span style={getBadgeStyle()}>
-            {isOnline ? 'ONLINE' : 'OFFLINE'}
-          </span>
-        </div>
+        {isCoordenadas &&(
+          <div style={formCardStyle}>
+            <div style={{ ...styles.flexBetween, ...styles.mb16 }}>
+              <h3 style={es.headerClean}>1. Ubicacion Geodesica</h3>
+              <span style={getBadgeStyle()}>
+                {isOnline ? 'ONLINE' : 'OFFLINE'}
+              </span>
+          </div>
 
-        <div style={es.toggleContainer}>
-          <button onClick={() => setGeoMode('gps')} style={getToggleStyle('gps')}>GPS AUTO</button>
-          <button onClick={() => setGeoMode('utm')} style={getToggleStyle('utm')}>UTM MANUAL</button>
-        </div>
+          <div style={es.toggleContainer}>
+            <button onClick={() => setGeoMode('gps')} style={getToggleStyle('gps')}>GPS AUTO</button>
+            <button onClick={() => setGeoMode('utm')} style={getToggleStyle('utm')}>UTM MANUAL</button>
+          </div>
 
-        <div style={es.mapContainer}>
-          {isOnline && mapUrl ? (
-            <iframe title="Mapa" src={mapUrl} style={es.mapIframe} loading="lazy" />
-          ) : (
-            <div style={es.mapPlaceholder}>
-              <MapPin size={24} />
-              <span style={{ fontSize: '11px', fontWeight: '600', marginTop: '4px' }}>SIN REFERENCIA VISUAL</span>
+          <div style={es.mapContainer}>
+            {isOnline && mapUrl ? (
+              <iframe title="Mapa" src={mapUrl} style={es.mapIframe} loading="lazy" />
+            ) : (
+              <div style={es.mapPlaceholder}>
+                <MapPin size={24} />
+                <span style={{ fontSize: '11px', fontWeight: '600', marginTop: '4px' }}>SIN REFERENCIA VISUAL</span>
+              </div>
+            )}
+          </div>
+
+          {geoMode === 'gps' && (
+            <>
+              <div style={es.grid2}>
+                <div>
+                  <label style={styles.label}>Latitud</label>
+                  <div style={es.inputReadOnly}>{displayLat.toFixed(6)}</div>
+                </div>
+                <div>
+                  <label style={styles.label}>Longitud</label>
+                  <div style={es.inputReadOnly}>{displayLng.toFixed(6)}</div>
+                </div>
+              </div>
+              <button onClick={onCaptureGps} disabled={isFetchingGps} style={styles.btnSecondary}>
+                {isFetchingGps ? <RefreshCw className="spin" size={16} /> : <Navigation size={16} />}
+                <span style={{ marginLeft: '8px' }}>{isFetchingGps ? "TRIANGULANDO..." : "ACTUALIZAR POSICION"}</span>
+              </button>
+            </>
+          )}
+
+          {geoMode === 'utm' && (
+            <div style={es.utmRow}>
+              <div style={{ width: 'auto', minWidth: '100px', marginRight: '10px' }}>
+                <label style={styles.label}>ZONA</label>
+                <select value={utmZone} onChange={(e) => setUtmZone(e.target.value)} style={styles.selects}>
+                  <option value="17">Zona 17S</option><option value="18">Zona 18S</option><option value="19">Zona 19S</option>
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={styles.label}>ESTE (X)</label>
+                <input type="number" value={utmEast} onChange={e => setUtmEast(e.target.value)} onFocus={ensureFieldVisibility} placeholder="Ej: 280500" style={es.inputNoMargin} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={styles.label}>NORTE (Y)</label>
+                <input type="number" value={utmNorth} onChange={e => setUtmNorth(e.target.value)} onFocus={ensureFieldVisibility} placeholder="Ej: 8665000" style={es.inputNoMargin} />
+              </div>
+              <button onClick={onUpdateUtm} style={es.btnSquare}>
+                <RefreshCw size={18} />
+              </button>
             </div>
           )}
-        </div>
-
-        {geoMode === 'gps' && (
-          <>
-            <div style={es.grid2}>
-              <div>
-                <label style={styles.label}>Latitud</label>
-                <div style={es.inputReadOnly}>{displayLat.toFixed(6)}</div>
-              </div>
-              <div>
-                <label style={styles.label}>Longitud</label>
-                <div style={es.inputReadOnly}>{displayLng.toFixed(6)}</div>
-              </div>
-            </div>
-            <button onClick={onCaptureGps} disabled={isFetchingGps} style={styles.btnSecondary}>
-              {isFetchingGps ? <RefreshCw className="spin" size={16} /> : <Navigation size={16} />}
-              <span style={{ marginLeft: '8px' }}>{isFetchingGps ? "TRIANGULANDO..." : "ACTUALIZAR POSICION"}</span>
-            </button>
-          </>
-        )}
-
-        {geoMode === 'utm' && (
-          <div style={es.utmRow}>
-            <div style={{ width: 'auto', minWidth: '100px', marginRight: '10px' }}>
-              <label style={styles.label}>ZONA</label>
-              <select value={utmZone} onChange={(e) => setUtmZone(e.target.value)} style={styles.selects}>
-                <option value="17">Zona 17S</option><option value="18">Zona 18S</option><option value="19">Zona 19S</option>
-              </select>
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={styles.label}>ESTE (X)</label>
-              <input type="number" value={utmEast} onChange={e => setUtmEast(e.target.value)} onFocus={ensureFieldVisibility} placeholder="Ej: 280500" style={es.inputNoMargin} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={styles.label}>NORTE (Y)</label>
-              <input type="number" value={utmNorth} onChange={e => setUtmNorth(e.target.value)} onFocus={ensureFieldVisibility} placeholder="Ej: 8665000" style={es.inputNoMargin} />
-            </div>
-            <button onClick={onUpdateUtm} style={es.btnSquare}>
-              <RefreshCw size={18} />
-            </button>
           </div>
         )}
-        </div>
+
+        {isRegistro && (
+          <div style={{ ...formCardStyle, backgroundColor: '#F8FAFC', border: '1px solid #CBD5E1' }}>
+            <h3 style={{ ...styles.subheading, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FileText size={18} /> Detalles de Padrón / Usuario
+            </h3>
+
+            {/* a. Usuario */}
+            <div style={{ marginBottom: '14px' }}>
+              <label style={styles.label}>a. Tipo de Usuario</label>
+              <select
+                value={activeRegistro.tipoUsuario}
+                onChange={(e) => {
+                  updateRegistro('tipoUsuario', e.target.value);
+                  if (e.target.value !== 'dni') setPredio(null);
+                }}
+                style={styles.selects}
+              >
+                <option value="" disabled>Seleccione origen...</option>
+                <option value="dni">DNI de base de datos</option>
+                <option value="carga_especial">Carga especial</option>
+                <option value="nuevo">Usuario nuevo</option>
+              </select>
+            </div>
+
+            {/* Selector de DNI de Base de Datos */}
+            {activeRegistro.tipoUsuario === 'dni' && (
+              <div style={{ marginBottom: '14px', paddingLeft: '12px', borderLeft: '3px solid #3B82F6' }}>
+                <label style={styles.label}>Seleccionar Persona (DNI)</label>
+                <select
+                  value={predio?.ID_Padron || ''}
+                  onChange={(e) => {
+                    const selected = prediosList.find(p => p.ID_Padron === Number(e.target.value));
+                    setPredio(selected || null);
+                  }}
+                  style={styles.selects}
+                >
+                  <option value="">Buscar en padrón de localidad...</option>
+                  {prediosList.map(p => (
+                    <option key={p.ID_Padron} value={p.ID_Padron}>
+                      {p.DNI_Padron} - {p.Nombre_Padron}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={styles.label}>Documento de Identidad (DNI)</label>
+              <input
+                type="text"
+                value={activeRegistro.dni}
+                onChange={(e) => updateRegistro('dni', e.target.value)}
+                onFocus={ensureFieldVisibility}
+                placeholder="Ingrese o modifique el DNI"
+                style={styles.input}
+              />
+            </div>
+
+            {/* b. Nombre */}
+            <div style={{ marginBottom: '14px' }}>
+              <label style={styles.label}>b. Nombre Completo</label>
+              <input
+                type="text"
+                value={activeRegistro.nombre}
+                onChange={(e) => updateRegistro('nombre', e.target.value)}
+                onFocus={ensureFieldVisibility}
+                placeholder="Ingrese el nombre (Editable)"
+                style={styles.input}
+              />
+            </div>
+
+            {/* c. Tipo de predio */}
+            <div style={{ marginBottom: '14px' }}>
+              <label style={styles.label}>c. Tipo de Predio</label>
+              <select
+                value={activeRegistro.tipoPredio}
+                onChange={(e) => updateRegistro('tipoPredio', e.target.value)}
+                style={styles.selects}
+              >
+                <option value="" disabled>Seleccionar de cargas especiales...</option>
+                <option value="VI">Vivienda</option>
+                <option value="VD">No Vivienda</option>
+              </select>
+            </div>
+          </div>
+        )}
 
         <div style={formCardStyle}>
           <h3 style={styles.subheading}>2. Evidencia de Campo</h3>
@@ -224,8 +361,8 @@ export const EvidenceFormScreen = ({
                   type="file"
                   ref={fileInputRef}
                   style={{ display: "none" }}
-                  accept=".pdf,.xls,.xlsx,.tif,.tiff,.zip" //limita los formatos posibles
-                  onChange={onCaptureFile} // Asumiendo que tu función actual puede manejar estos archivos
+                  accept=".pdf,.xls,.xlsx,.tif,.tiff,.zip"
+                  onChange={onCaptureFile}
                 />
               </div>
             ):(
@@ -336,10 +473,7 @@ export const EvidenceFormScreen = ({
               fontFamily: 'inherit',
               resize: 'vertical'
             }}
-            placeholder={`ejemplo:
-- poste CAC 8/300 con fisura longitudinal
-- vano 36 m. con flecha excedida
-- suelo arenoso inestable, requiere encofrado para cimentacion`}
+            placeholder={`...`}
           />
 
           {isPatActivity && (

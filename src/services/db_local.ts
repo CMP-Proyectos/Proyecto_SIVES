@@ -1,6 +1,6 @@
 import DexieBase, { type Table } from 'dexie';
 // Asegúrate de importar las interfaces correctas desde tu dataService
-import { ProjectRecord, FrontRecord, LocalityRecord, DetailRecord, ActivityRecord } from './dataService';
+import { ProjectRecord, FrontRecord, LocalityRecord, DetailRecord, ActivityRecord, PrediosRecord } from './dataService';
 
 // Interfaz para el caché de historial (la usaremos luego para "Evidencia Previa")
 export interface CachedRecord {
@@ -51,6 +51,7 @@ class MyDatabase extends DexieBase {
   catalog_fronts!: Table<FrontRecord>;
   catalog_localities!: Table<LocalityRecord>;
   catalog_details!: Table<DetailRecord>;
+  catalog_predios!: Table<PrediosRecord>;
   catalog_activities!: Table<ActivityRecord>; // <--- Esta faltaba y es clave
   history_cache!: Table<CachedRecord>;
   activity_properties_cache!: Table<CachedActivityProperty>;
@@ -68,6 +69,7 @@ class MyDatabase extends DexieBase {
       catalog_fronts: 'ID_Frente, ID_Proyecto',
       catalog_localities: 'ID_Localidad, ID_Frente',
       catalog_details: 'ID_DetallesActividad, ID_Localidad',
+      catalog_predios: 'ID_Padron, ID_Localidad',
       catalog_activities: 'ID_Actividad',
       
       // Caché

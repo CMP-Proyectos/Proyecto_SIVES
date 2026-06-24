@@ -1,6 +1,7 @@
 import {
   ActivityRecord,
   DetailRecord,
+  PrediosRecord,
   FrontRecord,
   LocalityRecord,
 } from "../../services/dataService";
@@ -15,6 +16,7 @@ type CatalogHierarchyInput = {
   fronts: FrontRecord[];
   localities: LocalityRecord[];
   details: DetailRecord[];
+  predios: PrediosRecord[];
   activities: ActivityRecord[];
   selectedItem: string | null;
   selectedFrontId: number | null;
@@ -71,6 +73,7 @@ export const buildCatalogHierarchySnapshot = ({
   fronts,
   localities,
   details,
+  predios,
   activities,
   selectedItem,
   selectedFrontId,
@@ -134,7 +137,6 @@ export const buildCatalogHierarchySnapshot = ({
           (detail) => localityMap.get(detail.ID_Localidad)?.ID_Frente === selectedFrontId
         );
 
-  // Imagen 2 actualizada
   const localitiesForSelection = !selectedFrontId
     ? []
     : localities.filter((locality) => {
@@ -155,6 +157,11 @@ export const buildCatalogHierarchySnapshot = ({
   const detailsForCurrentLocality = !selectedLocalityId
     ? []
     : detailsForSelectedFront.filter((detail) => detail.ID_Localidad === selectedLocalityId);
+
+  const prediosForCurrentLocality = !selectedLocalityId
+    ? []
+    : predios.filter((predios) => predios.ID_Localidad === selectedLocalityId);
+
 
   const substationsForCurrentSelection = uniqueStrings(
     detailsForCurrentLocality.map((detail) => detail.Subestacion)
@@ -209,6 +216,7 @@ export const buildCatalogHierarchySnapshot = ({
     localitiesForSelection,
     filteredLocalities,
     detailsForCurrentLocality,
+    prediosForCurrentLocality,
     substationsForCurrentSelection,
     filteredSubstations,
     hasSubstationsForCurrentSelection,

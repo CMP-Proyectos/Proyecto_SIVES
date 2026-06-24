@@ -46,11 +46,43 @@ export const isIngresoPorArchivo = (actividad?: {
     "plano",
     "laboratorio", 
     "informe",
-    "autorización",
-    "acta"
+    "autorizacion",
+    "acta",
+    "padron",
+    "autoridad"
   ];
 
   return palabrasClaveArchivo.some((palabra) => nombre.includes(palabra));
+};
+
+export const isRegistroUsuarios = (actividad?: {
+  Grupo?: string | null;
+  Nombre_Actividad?: string | null;
+} | null) => {
+  const grupo = normalizeText(actividad?.Grupo);
+  const nombre = normalizeText(actividad?.Nombre_Actividad);
+
+  return (
+    nombre.includes("registro de") &&
+    grupo.includes("padron")
+  );
+};
+
+export const requiereCoordenadas = (actividad?: {
+  Grupo?: string | null;
+  Nombre_Actividad?: string | null;
+} | null) => {
+  const nombre = normalizeText(actividad?.Nombre_Actividad);
+
+  const actividadesConCoordenadas = [
+    "llegada a la localidad",
+    "fotografia de la ejecucion",
+    "5. hitos",
+    "extraccion de muestra",
+    "estacado",
+    "registro de"
+  ];
+  return actividadesConCoordenadas.some((palabra) => nombre.includes(palabra));
 };
 
 export const parseOhmsValue = (value: string) => {

@@ -48,6 +48,17 @@ export type ActivityRecord = {
   Categoria: string | null;
 };
 
+export type PrediosRecord = {
+  ID_Padron: number;
+  ID_Localidad: number;
+  Nombre_Padron: string;
+  DNI_Padron: string;
+  Hab_Lote : number | null;
+  Uso_Predio: string;
+  Latitud: number;
+  Longitud: number;
+}
+
 export type MapRecordSource = "mine" | "global";
 
 export type MapRecord = UserRecord & {
@@ -323,6 +334,16 @@ export const getDetailsByLocalityIds = (localityIds: number[]) => {
     "ID_Localidad",
     localityIds
   );
+};
+
+export const getPrediosByLocalityIds = (localityIds: number[]) => {
+  return fetchCatalogByIds<PrediosRecord>(
+    "Predios",
+    "ID_Padron, ID_Localidad, Nombre_Padron, DNI_Padron, Hab_Lote, Uso_Predio, Latitud, Longitud",
+    "ID_Padron",
+    "ID_Localidad",
+    localityIds
+  )
 };
 
 export const getActivitiesByIds = (activityIds: number[]) => {
