@@ -10,6 +10,7 @@ import {
   LocalityRecord,
   MapRecord,
   ProjectRecord,
+  PrediosRecord,
 } from "../../services/dataService";
 import type { UserRecord } from "../../types/records.types";
 import { buildCatalogHierarchySnapshot, sortByLabel } from "./catalogHierarchy";
@@ -113,6 +114,7 @@ export function useMapFlow({
   const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null);
   const [fronts, setFronts] = useState<FrontRecord[]>([]);
   const [localities, setLocalities] = useState<LocalityRecord[]>([]);
+  const [predios, setPredios] = useState<PrediosRecord[]>([]); 
   const [details, setDetails] = useState<DetailRecord[]>([]);
   const [globalRecordsByProject, setGlobalRecordsByProject] = useState<Record<number, MapRecord[]>>({});
   const [isLoadingGlobalRecords, setIsLoadingGlobalRecords] = useState(false);
@@ -174,6 +176,7 @@ export function useMapFlow({
         fronts,
         localities,
         details,
+        predios,
         activities,
         selectedItem,
         selectedFrontId,
@@ -350,10 +353,20 @@ export function useMapFlow({
 
   const setSelectedItem = useCallback((item: string | null) => {
     setSelectedItemState(item);
+    setSelectedStructureState(null);
     setSelectedFrontIdState(null);
     setSelectedLocalityIdState(null);
     setSelectedSubstationState(null);
-    setSelectedStructureState(null);
+    setSelectedGroupState(null);
+    setSelectedActivityIdState(null);
+    setSelectedRecordId(null);
+  }, []);
+
+  const setSelectedStructure = useCallback((structure: string | null) => {
+    setSelectedStructureState(structure);
+    setSelectedFrontIdState(null);
+    setSelectedLocalityIdState(null);
+    setSelectedSubstationState(null);
     setSelectedGroupState(null);
     setSelectedActivityIdState(null);
     setSelectedRecordId(null);
@@ -363,7 +376,6 @@ export function useMapFlow({
     setSelectedFrontIdState(frontId);
     setSelectedLocalityIdState(null);
     setSelectedSubstationState(null);
-    setSelectedStructureState(null);
     setSelectedGroupState(null);
     setSelectedActivityIdState(null);
     setSelectedRecordId(null);
@@ -372,7 +384,6 @@ export function useMapFlow({
   const setSelectedLocalityId = useCallback((localityId: number | null) => {
     setSelectedLocalityIdState(localityId);
     setSelectedSubstationState(null);
-    setSelectedStructureState(null);
     setSelectedGroupState(null);
     setSelectedActivityIdState(null);
     setSelectedRecordId(null);
@@ -380,14 +391,6 @@ export function useMapFlow({
 
   const setSelectedSubstation = useCallback((substation: string | null) => {
     setSelectedSubstationState(substation);
-    setSelectedStructureState(null);
-    setSelectedGroupState(null);
-    setSelectedActivityIdState(null);
-    setSelectedRecordId(null);
-  }, []);
-
-  const setSelectedStructure = useCallback((structure: string | null) => {
-    setSelectedStructureState(structure);
     setSelectedGroupState(null);
     setSelectedActivityIdState(null);
     setSelectedRecordId(null);

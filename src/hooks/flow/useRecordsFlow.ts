@@ -13,7 +13,9 @@ export function useRecordsFlow(
     showToast: (msg: string, type: "success" | "error" | "info") => void,
     setConfirmModal: (modal: ConfirmModalState | null) => void,
     setIsLoading: (v: boolean) => void,
-    MASTER_BUCKET: string
+    MASTER_BUCKET: string,
+    esEspecialista: boolean | undefined,
+    esSupervisor: boolean | undefined
 ) {
   const [userRecords, setUserRecords] = useState<UserRecord[]>([]);
   const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null);
@@ -36,7 +38,7 @@ export function useRecordsFlow(
 
     setIsLoadingRecords(true);
     try {
-      const data = await fetchUserRecords(sessionUserId);
+      const data = await fetchUserRecords(sessionUserId, esEspecialista, esSupervisor);
       setUserRecords(data);
       setHasLoadedUserRecords(true);
     } catch (err) {

@@ -438,13 +438,20 @@ export const createRegistroImagenes = async (payload: RegistroImagenPayload[]) =
   return { data, error };
 };
 
-export const fetchUserRecords = async (userId: string): Promise<UserRecord[]> => {
+export const fetchUserRecords = async (userId: string, isEspecialista: boolean|undefined, isSupervisor: boolean|undefined): Promise<UserRecord[]> => {
   if (!userId) return [];
 
-  const { data: registros, error: registrosError } = await supabase
+  let query = supabase
     .from("Registros")
-    .select("ID_Registros, Fecha_Subida, URL_Archivo, Comentario, Ruta_Archivo, Bucket, ID_Verificada, user_id, id_proyecto, Ohms, Especialista, Supervisor")
-    .eq("user_id", userId)
+    .select("ID_Registros, Fecha_Subida, URL_Archivo, Comentario, Ruta_Archivo, Bucket, ID_Verificada, user_id, id_proyecto, Ohms, Especialista, Supervisor");
+
+  const isPrivileged = isEspecialista || isSupervisor;
+
+  if (!isPrivileged) {
+    query = query.eq("user_id", userId);
+  }
+
+  const { data: registros, error: registrosError } = await query
     .order("Fecha_Subida", { ascending: false });
 
   if (registrosError) throw registrosError;

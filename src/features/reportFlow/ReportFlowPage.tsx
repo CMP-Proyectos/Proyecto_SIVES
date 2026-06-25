@@ -466,9 +466,6 @@ export default function ReportFlowPage() {
         {flow.step === "activity" && (
           <div style={styles.section}>
             <h2 style={styles.heading}>Seleccionar actividad</h2>
-            <p style={{ fontSize: "12px", color: "#667085", margin: "-6px 0 16px" }}>
-              Los conductores mostraran la longitud en metros (m.) del vano.
-            </p>
             <div style={styles.scrollableY}>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {flow.filteredActivities.length > 0 ? (

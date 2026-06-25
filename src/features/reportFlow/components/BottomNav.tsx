@@ -51,7 +51,7 @@ export const BottomNav = ({
           strokeWidth={isRecordsActive ? 2.5 : 2}
           style={{ marginBottom: 4 }}
         />
-        <span style={styles.navLabel}>Galeria</span>
+        <span style={styles.navLabel}>Registros</span>
       </button>
 
       <button onClick={onNavMap} style={getItemStyle(isMapActive)}>

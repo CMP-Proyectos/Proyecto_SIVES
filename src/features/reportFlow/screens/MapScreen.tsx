@@ -274,6 +274,15 @@ export const MapScreen = ({ isOnline, map }: Props) => {
           />
 
           <FilterSelect
+            label="Estructura"
+            value={map.selectedStructure || ""}
+            options={structureOptions}
+            onChange={(value) => map.setSelectedStructure(value || null)}
+            placeholder="Todas las estructuras"
+            disabled={!map.selectedItem}
+          />
+
+          <FilterSelect
             label="Frente"
             value={map.selectedFrontId ? String(map.selectedFrontId) : ""}
             options={frontOptions}
@@ -291,6 +300,8 @@ export const MapScreen = ({ isOnline, map }: Props) => {
             disabled={!map.selectedFrontId}
           />
 
+          {/*
+          Deshabilitado por ahora
           {map.shouldShowSubstationFilter && (
             <FilterSelect
               label="Subestacion"
@@ -300,15 +311,7 @@ export const MapScreen = ({ isOnline, map }: Props) => {
               placeholder="Todas las subestaciones"
             />
           )}
-
-          <FilterSelect
-            label="Estructura"
-            value={map.selectedStructure || ""}
-            options={structureOptions}
-            onChange={(value) => map.setSelectedStructure(value || null)}
-            placeholder="Todas las estructuras"
-            disabled={!map.selectedLocalityId}
-          />
+          */}
 
           <FilterSelect
             label="Grupo"
