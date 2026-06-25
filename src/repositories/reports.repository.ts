@@ -4,6 +4,7 @@ import {
   createRegistro,
   createRegistroImagenes,
   uploadEvidence,
+  createPrediosReport,
 } from "../services/dataService";
 
 export type ReportEvidenceInput = {
@@ -23,6 +24,7 @@ export type SaveReportOnlineParams = {
   comment: string;
   ohms?: number | null | string;
   evidenceFiles: ReportEvidenceInput[];
+  padronData?: any;
 };
 
 export type SaveReportOnlineResult = {
@@ -73,6 +75,9 @@ const insertReportRecord = async (params: {
   const especialista = null
   const supervisor = null
   return createRegistro({
+    //esta parte luce como error pero por el funcionamiento
+    //de la base de datos no es necesario enviar especialista y supervisor
+    //porque se inicializan en 0
     Nombre_Archivo: params.mainImage.Nombre_Archivo,
     URL_Archivo: params.mainImage.URL_Archivo,
     user_id: params.userId,
@@ -119,6 +124,10 @@ export const saveReportOnline = async (
     const recordId = recordResponse.data?.[0]?.ID_Registros ?? null;
     if (recordId) {
       await insertReportImages(recordId, uploadedImages);
+    }
+
+    if(params.padronData){
+      await createPrediosReport(params.padronData);
     }
 
     return {

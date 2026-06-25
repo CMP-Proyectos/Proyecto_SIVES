@@ -17,6 +17,7 @@ import {
   DetailRecord,
   ActivityRecord,
   PrediosRecord,
+  RegistroUsuariosData,
 } from "../../services/dataService";
 import {
   buildCatalogHierarchySnapshot,
@@ -43,6 +44,12 @@ export function useCatalogFlow(isOnline: boolean) {
   const [details, setDetails] = useState<DetailRecord[]>([]);
   const [activities, setActivities] = useState<ActivityRecord[]>([]);
   const [predios, setPredios] = useState<PrediosRecord[]>([]);
+  const [registroData, setRegistroData] = useState<RegistroUsuariosData>({
+    tipoUsuario: '',
+    dni: '',
+    nombre: '',
+    tipoPredio: '',
+  });
 
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [selectedFrontId, setSelectedFrontId] = useState<number | null>(null);
@@ -436,6 +443,8 @@ const selectGroup = useCallback((group: string) => {
   };
 
   return {
+    registroData, 
+    setRegistroData,
     syncStatus,
     projects,
     fronts,

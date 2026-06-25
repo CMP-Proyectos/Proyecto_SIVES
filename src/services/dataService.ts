@@ -70,6 +70,13 @@ export type MapRecord = UserRecord & {
   nombre_subestacion: string | null;
 };
 
+export interface RegistroUsuariosData {
+  tipoUsuario: string;
+  dni: string;
+  nombre: string;
+  tipoPredio: string;
+}
+
 export type JoinProjectResultStatus =
   | "joined"
   | "already_joined"
@@ -387,6 +394,15 @@ export const uploadEvidence = async (bucket: string, path: string, file: Blob, t
   const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(data.path);
   return publicUrl.publicUrl;
 };
+
+export const createPrediosReport = async (payload: {
+  padronData: any;
+}) =>{
+  const { error: padronError } = await supabase
+    .from('Detalles_Padron')
+    .insert([payload]);
+  if (padronError) throw padronError;
+}
 
 export const createCheckedActivity = async (payload: {
   ID_DetallesActividad: number;

@@ -556,6 +556,8 @@ export default function ReportFlowPage() {
             requiereArchivo = {flow.isArchivo}
             isCoordenadas = {flow.isCoordenadas}
             isRegistro = {flow.isRegistro}
+            registroData = {flow.registroData}
+            setRegistroData = {flow.setRegistroData}
             isLoading={flow.isLoading}
             onSave={() => {
               flow.saveReport();

@@ -4,14 +4,8 @@ import { EvidenceImage } from '../types';
 import { FileText, FileUp, RefreshCw, Navigation, MapPin, Camera, Image as ImageIcon, UploadCloud, AlertCircle, Trash2 } from 'lucide-react';
 import {
   PrediosRecord,
+  RegistroUsuariosData,
 } from "../../../services/dataService";
-
-export interface RegistroUsuariosData {
-  tipoUsuario: string;
-  dni: string;
-  nombre: string;
-  tipoPredio: string;
-}
 
 interface Props {
   isOnline: boolean;
@@ -29,8 +23,6 @@ interface Props {
   isAnalyzing: boolean;
   aiFeedback: { type: 'warning' | 'info' | 'success', message: string } | null;
   onCaptureFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  registroData?: RegistroUsuariosData;
-  setRegistroData?: (data: RegistroUsuariosData) => void;
   prediosList?: PrediosRecord[];
   predio: PrediosRecord | null; setPredio: (v: PrediosRecord | null) => void;
   onRemoveImage: (imageId: string) => void;
@@ -42,6 +34,8 @@ interface Props {
   isCoordenadas: boolean;
   isLoading: boolean;
   isRegistro: boolean;
+  registroData?: RegistroUsuariosData;
+  setRegistroData?: (data: RegistroUsuariosData) => void;
   onSave: () => void;
   previousRecord?: any;
 }
@@ -73,6 +67,7 @@ export const EvidenceFormScreen = ({
     if (setRegistroData) setRegistroData(updated);
     else setLocalRegistro(updated);
   };
+
 
   useEffect(() => {
     if (predio && activeRegistro.tipoUsuario === 'dni') {
@@ -188,7 +183,7 @@ export const EvidenceFormScreen = ({
         {isCoordenadas &&(
           <div style={formCardStyle}>
             <div style={{ ...styles.flexBetween, ...styles.mb16 }}>
-              <h3 style={es.headerClean}>1. Ubicacion Geodesica</h3>
+              <h3 style={es.headerClean}>Ubicacion Geodesica</h3>
               <span style={getBadgeStyle()}>
                 {isOnline ? 'ONLINE' : 'OFFLINE'}
               </span>
@@ -341,44 +336,65 @@ export const EvidenceFormScreen = ({
         )}
 
         <div style={formCardStyle}>
-          <h3 style={styles.subheading}>2. Evidencia de Campo</h3>
+          <h3 style={styles.subheading}>Evidencia de Campo</h3>
 
           <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={onCaptureFile} style={{ display: 'none' }} />
           <input ref={galleryInputRef} type="file" accept="image/*" multiple onChange={onCaptureFile} style={{ display: 'none' }} />
+          <input ref={fileInputRef} type="file" accept=".pdf,.xls,.xlsx,.tif,.tiff,.zip" multiple={isRegistro} onChange={onCaptureFile} style={{ display: "none" }} />
+
+          {isRegistro && !evidencePreview && (
+            <div style={{ backgroundColor: '#F0F9FF', padding: '12px', borderRadius: '6px', marginBottom: '16px', border: '1px dashed #BAE6FD' }}>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: '#0369A1', display: 'block', marginBottom: '6px' }}>
+                ARCHIVOS/FOTOS REQUERIDOS (Subir {evidenceImages.length}/5)
+              </span>
+              <ul style={{ fontSize: '12px', color: '#0C4A6E', margin: 0, paddingLeft: '20px', lineHeight: '1.5' }}>
+                <li>1. Foto del predio</li>
+                <li>2. Foto de DNI (Anverso)</li>
+                <li>3. Foto de DNI (Reverso)</li>
+                <li>4. Encuesta (PDF o Foto)</li>
+                <li>5. Constancia (PDF o Foto)</li>
+              </ul>
+            </div>
+          )}
 
           {!evidencePreview ? (
-            requiereArchivo?(
+            isRegistro ? (
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <button type="button" onClick={() => cameraInputRef.current?.click()} style={{ ...getCameraBtnStyle(), flex: 1, padding: '12px 4px' }}>
+                  <Camera size={24} style={{ marginBottom: '4px' }} />
+                  <span style={{ fontSize: '10px', fontWeight: '700' }}>CÁMARA</span>
+                </button>
+                <button type="button" onClick={() => galleryInputRef.current?.click()} style={{ ...es.uploadBtnLarge, flex: 1, padding: '12px 4px' }}>
+                  <ImageIcon size={24} style={{ marginBottom: '4px' }} />
+                  <span style={{ fontSize: '10px', fontWeight: '700' }}>GALERÍA</span>
+                </button>
+                <button type="button" onClick={() => fileInputRef.current?.click()} style={{ ...es.uploadBtnLarge, flex: 1, padding: '12px 4px' }}>
+                  <FileUp size={24} style={{ marginBottom: '4px' }} />
+                  <span style={{ fontSize: '10px', fontWeight: '700' }}>ARCHIVO</span>
+                </button>
+              </div>
+            ) : requiereArchivo ? (
               <div style={es.uploadRow}>
-                <button 
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()} 
-                  style={es.uploadBtnLarge}
-                >
+                <button type="button" onClick={() => fileInputRef.current?.click()} style={es.uploadBtnLarge}>
                   <FileUp size={32} style={{ marginBottom: '8px' }} />
                   <span style={{ fontSize: '12px', fontWeight: '700' }}>SUBIR ARCHIVO</span>
                 </button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  style={{ display: "none" }}
-                  accept=".pdf,.xls,.xlsx,.tif,.tiff,.zip"
-                  onChange={onCaptureFile}
-                />
               </div>
-            ):(
+            ) : (
               <div style={es.uploadRow}>
                 <button onClick={() => cameraInputRef.current?.click()} style={getCameraBtnStyle()}>
                   <Camera size={32} style={{ marginBottom: '8px' }} />
-                  <span style={{ fontSize: '12px', fontWeight: '700' }}>CAMARA</span>
+                  <span style={{ fontSize: '12px', fontWeight: '700' }}>CÁMARA</span>
                 </button>
 
                 <button onClick={() => galleryInputRef.current?.click()} style={es.uploadBtnLarge}>
                   <ImageIcon size={32} style={{ marginBottom: '8px' }} />
-                  <span style={{ fontSize: '12px', fontWeight: '700' }}>GALERIA</span>
+                  <span style={{ fontSize: '12px', fontWeight: '700' }}>GALERÍA</span>
                 </button>
               </div>
             )
           ) : (
+            // VISTA PREVIA Y MANEJO DE MÚLTIPLES ARCHIVOS
             <div style={{ marginBottom: '16px' }}>
                 <div style={es.previewContainer}>
                   {(() => {
@@ -398,12 +414,10 @@ export const EvidenceFormScreen = ({
                 </div>
                 
                 <div style={es.helperText}>
-                  {requiereArchivo 
-                    ? "Sube los documentos requeridos." 
-                    : "Sube las imagenes"}
+                  {isRegistro ? "Sube los 5 archivos requeridos en la lista." : (requiereArchivo ? "Sube los documentos requeridos." : "Sube las imágenes")}
                 </div>
                 
-                <div style={es.imageCounter}>{evidenceImages.length} / 5 {requiereArchivo ? 'archivos' : 'imágenes'}</div>
+                <div style={es.imageCounter}>{evidenceImages.length} / 5 {requiereArchivo || isRegistro ? 'archivos' : 'imágenes'}</div>
                 
                 <div style={es.thumbnailGrid}>
                   {evidenceImages.map((image, index) => {
@@ -418,7 +432,7 @@ export const EvidenceFormScreen = ({
                           </div>
                         )}
                         <div style={es.thumbnailMeta}>
-                          <span>{index === 0 ? 'Principal' : `${requiereArchivo ? 'Archivo' : 'Imagen'} ${index + 1}`}</span>
+                          <span>{index === 0 ? 'Principal' : `Anexo ${index + 1}`}</span>
                           <button type="button" onClick={() => onRemoveImage(image.id)} style={es.thumbnailDeleteBtn}>
                             <Trash2 size={14} />
                           </button>
@@ -429,17 +443,29 @@ export const EvidenceFormScreen = ({
                 </div>
 
                 <div style={es.actionsRow}>
-                  {requiereArchivo ? (
+                  {isRegistro ? (
+                    <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                      <button type="button" onClick={() => cameraInputRef.current?.click()} style={{...es.btnSmall, flex: 1, padding: '8px 2px'}} disabled={evidenceImages.length >= 5}>
+                        <Camera size={14} /> CÁMARA
+                      </button>
+                      <button type="button" onClick={() => galleryInputRef.current?.click()} style={{...es.btnSmall, flex: 1, padding: '8px 2px'}} disabled={evidenceImages.length >= 5}>
+                        <ImageIcon size={14} /> GALERÍA
+                      </button>
+                      <button type="button" onClick={() => fileInputRef.current?.click()} style={{...es.btnSmall, flex: 1, padding: '8px 2px'}} disabled={evidenceImages.length >= 5}>
+                        <FileUp size={14} /> ARCHIVO
+                      </button>
+                    </div>
+                  ) : requiereArchivo ? (
                     <button type="button" onClick={() => fileInputRef.current?.click()} style={{...es.btnSmall, width: '100%'}} disabled={evidenceImages.length >= 5}>
                       <FileUp size={14} /> AGREGAR OTRO ARCHIVO
                     </button>
                   ) : (
                     <>
                       <button type="button" onClick={() => cameraInputRef.current?.click()} style={es.btnSmall} disabled={evidenceImages.length >= 5}>
-                        <Camera size={14} /> AGREGAR CAMARA
+                        <Camera size={14} /> AGREGAR CÁMARA
                       </button>
                       <button type="button" onClick={() => galleryInputRef.current?.click()} style={es.btnSmall} disabled={evidenceImages.length >= 5}>
-                        <ImageIcon size={14} /> AGREGAR GALERIA
+                        <ImageIcon size={14} /> AGREGAR GALERÍA
                       </button>
                     </>
                   )}

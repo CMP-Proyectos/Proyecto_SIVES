@@ -471,6 +471,8 @@ export function useReportFlow() {
     const isCoordenadas = requiereCoordenadas(catalog.selectedActivity);
     const isRegistro = isRegistroUsuarios(catalog.selectedActivity);
     const parsedOhms = parseOhmsValue(evidence.ohms);
+
+    
     
     if (isPatActivity && parsedOhms === null) {
       showToast("Ingrese una medicion Ohms valida para PAT", "error");
@@ -517,6 +519,22 @@ export function useReportFlow() {
       });
     });
 
+    let padronData = null;
+
+    if (isRegistro && catalog.registroData) {
+      const idPadron = catalog.registroData.tipoUsuario === 'dni' && catalog.selectedPredios 
+        ? catalog.selectedPredios.ID_Padron 
+        : null;
+
+      padronData = {
+        "ID_DetallesActividad": selectedDetail.ID_DetallesActividad,
+        "ID_Padron": idPadron, 
+        "DNI": catalog.registroData.dni,
+        "Nombre": catalog.registroData.nombre,
+        "Tipo de Predio": catalog.registroData.tipoPredio,
+      };
+    }
+
     // 2. Preparar el guardado offline por si falla la red
     const persistPendingRecord = async (reason: string) => {
       const pendingRecord = createPendingReportPayload({
@@ -555,7 +573,8 @@ export function useReportFlow() {
         userId: sessionUser.id,
         comment: evidence.note,
         ohms: isSelector ? evidence.ohms : (isPatActivity ? parsedOhms : null),
-        evidenceFiles: allEvidenceFiles, // Enviamos absolutamente todo por aquí
+        evidenceFiles: allEvidenceFiles,
+        padronData : padronData
       });
 
       await records.loadUserRecords();
@@ -623,6 +642,7 @@ export function useReportFlow() {
     if (!resolvedSelection) return;
     setStep("confirm");
   };
+
 
   const goBack = () => {
     const previousStep: Step =
@@ -753,6 +773,7 @@ export function useReportFlow() {
     utmZone: evidence.utmZone, setUtmZone: evidence.setUtmZone, utmEast: evidence.utmEast, setUtmEast: evidence.setUtmEast, utmNorth: evidence.utmNorth, setUtmNorth: evidence.setUtmNorth, handleUpdateFromUtm: evidence.handleUpdateFromUtm,
     evidenceImages: evidence.evidenceImages, evidencePreview: evidence.evidencePreview, handleCaptureFile: evidence.handleCaptureFile, removeEvidenceImage: evidence.removeEvidenceImage, note: evidence.note, setNote: evidence.setNote, isFetchingGps: evidence.isFetchingGps, isAnalyzing: evidence.isAnalyzing, aiFeedback: evidence.aiFeedback,
     ohms: evidence.ohms, setOhms: evidence.setOhms, isPatActivity: isCuadroTexto(catalog.selectedActivity), isSelector : getOpcionesSeleccion(catalog.selectedActivity), isArchivo : isIngresoPorArchivo(catalog.selectedActivity), isCoordenadas : requiereCoordenadas(catalog.selectedActivity), isRegistro : isRegistroUsuarios(catalog.selectedActivity),
+    registroData : catalog.registroData, setRegistroData: catalog.setRegistroData,
     saveReport, getMapUrl,
     map,
     userRecords: records.userRecords, isLoadingRecords: records.isLoadingRecords, selectedRecordId: records.selectedRecordId, setSelectedRecordId: records.setSelectedRecordId,
