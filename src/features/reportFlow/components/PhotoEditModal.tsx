@@ -5,6 +5,10 @@ interface Props {
   open: boolean;
   previewUrl: string;
   comment: string;
+  latitud : number | null;
+  longitud : number | null;
+  onLatitudChange: (val: number | null) => void;
+  onLongitudChange: (val: number | null) => void;
   onCommentChange: (val: string) => void;
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClose: () => void;
@@ -15,6 +19,10 @@ export const PhotoEditModal = ({
   open,
   previewUrl,
   comment,
+  latitud,
+  longitud,
+  onLatitudChange,
+  onLongitudChange,
   onCommentChange,
   onFileSelect,
   onClose,
@@ -25,7 +33,15 @@ export const PhotoEditModal = ({
   if (!open) return null;
 
   return (
+
     <div style={styles.modalOverlay}>
+      <div 
+        style={{ 
+          ...styles.modalCard, 
+          maxHeight: '90vh',  // Define una altura máxima para el modal (90% de la altura de la pantalla)
+          overflowY: 'auto'    // Permite el desplazamiento vertical si el contenido excede la altura máxima
+        }}
+      >
       <div style={styles.modalCard}>
         <h3 style={styles.heading}>Editar Registro</h3>
 
@@ -64,6 +80,32 @@ export const PhotoEditModal = ({
           style={styles.input}
         />
 
+        <label style={styles.label}>Latitud</label>
+        <input
+          type="number"
+          step="any"
+          value={latitud ?? ""}
+          onChange={(e) => {
+            const valor = e.target.value;
+            // Agregamos el signo ? antes de los paréntesis
+            onLatitudChange?.(valor === "" ? null : parseFloat(valor));
+          }}
+          style={styles.input}
+        />
+
+        <label style={styles.label}>Longitud</label>
+        <input
+          type="number"
+          step="any"
+          value={longitud ?? ""}
+          onChange={(e) => {
+            const valor = e.target.value;
+            // Agregamos el signo ? antes de los paréntesis
+            onLongitudChange?.(valor === "" ? null : parseFloat(valor));
+          }}
+          style={styles.input}
+        />
+
         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
           <button onClick={onClose} style={{ ...styles.btnSecondary, width: '50%' }}>
             Cancelar
@@ -72,6 +114,7 @@ export const PhotoEditModal = ({
             Guardar
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

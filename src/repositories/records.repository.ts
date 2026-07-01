@@ -4,6 +4,7 @@ import type {
   DeleteRecordParams,
   RecordImageRow,
   RecordUpdatePayload,
+  UpdateCoordenadas,
   UpdateRecordWithImageParams,
   UploadedRecordImage,
 } from "../types/records.types";
@@ -39,6 +40,27 @@ export async function updateRecordInfo(recordId: number, updates: RecordUpdatePa
     .eq("ID_Registros", recordId);
 
   if (error) throw error;
+}
+
+export async function updateCoordenadas(recordId: number, updates: UpdateCoordenadas): Promise<void> {
+  
+  const { data: registroData, error: fetchError } = await supabase
+    .from("Registros")
+    .select("ID_Verificada")
+    .eq("ID_Registros", recordId)
+    .single();
+
+  if (fetchError) throw fetchError;
+  if (!registroData || !registroData.ID_Verificada) {
+    throw new Error("No se encontró un ID_Verificada para este registro.");
+  }
+
+  const { error: updateError } = await supabase
+    .from("Actividad_Verificada")
+    .update(updates)
+    .eq("ID_Verificada", registroData.ID_Verificada);
+
+  if (updateError) throw updateError;
 }
 
 export async function updateRecordImageRelations(
@@ -158,6 +180,7 @@ export async function updateRecordWithOptionalImage(
   params: UpdateRecordWithImageParams
 ): Promise<void> {
   const updates: RecordUpdatePayload = { Comentario: params.comment };
+  const coordenadas: UpdateCoordenadas = { Latitud: params.latitud, Longitud: params.longitud};
 
   if (params.replacementFile && params.bucket) {
     const uploadedImage = await uploadReplacementRecordImage({
@@ -179,4 +202,5 @@ export async function updateRecordWithOptionalImage(
   }
 
   await updateRecordInfo(params.recordId, updates);
+  await updateCoordenadas(params.recordId, coordenadas);
 }

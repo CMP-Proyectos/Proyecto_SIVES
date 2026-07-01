@@ -71,25 +71,25 @@ export function useReportFlow() {
   idRegistro: number, 
   tipoColumna: 'Supervisor' | 'Especialista', 
   valorActual: number | null
-) => {
-  const nuevoValor = valorActual === 1 ? 0 : 1;
+  ) => {
+    const nuevoValor = valorActual === 1 ? 0 : 1;
 
-  const { data, error } = await supabase
-    .from('Registros')
-    .update({ 
-      [tipoColumna]: nuevoValor
-    })
-    .eq('ID_Registros', idRegistro)
-    .select()
-    .single();
+    const { data, error } = await supabase
+      .from('Registros')
+      .update({ 
+        [tipoColumna]: nuevoValor
+      })
+      .eq('ID_Registros', idRegistro)
+      .select()
+      .single();
 
-  if (error) {
-    console.error(`Error actualizando verificación de ${tipoColumna}:`, error);
-    throw error;
-  }
+    if (error) {
+      console.error(`Error actualizando verificación de ${tipoColumna}:`, error);
+      throw error;
+    }
 
-  return data;
-};
+    return data;
+  };
 
   const syncStatus = isOnline ? "ONLINE" : "OFFLINE";
   const [cachedHistoryDetailIds, setCachedHistoryDetailIds] = useState<number[]>([]);
@@ -782,6 +782,7 @@ export function useReportFlow() {
     isPhotoModalOpen: records.isPhotoModalOpen,
     openEditModal: records.openEditModal,
     closeEditModal: () => records.setIsPhotoModalOpen(false),
+    editLatitud: records.editLatitud, setEditLatitud: records.setEditLatitud, editLongitud : records.editLongitud, setEditLongitud: records.setEditLongitud,
     editComment: records.editComment, setEditComment: records.setEditComment, editPreviewUrl: records.editPreviewUrl, handleEditFileSelect: (e:any) => { if(e.target.files?.[0]) { records.setEditEvidenceFile(e.target.files[0]); records.setEditPreviewUrl(URL.createObjectURL(e.target.files[0])); } },
     saveRecordEdits: records.saveRecordEdits,
     handleGoHome, goBack,

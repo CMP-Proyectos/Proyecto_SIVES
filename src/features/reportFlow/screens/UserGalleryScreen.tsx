@@ -183,14 +183,11 @@ export const UserGalleryScreen = ({
                                 <button 
                                     onClick={() => handleToggleVerificacion(rec.id_registro, 'Supervisor', rec.supervisor)}
                                     style={{
-                                        marginTop: '8px',
-                                        padding: '6px 12px',
-                                        backgroundColor: rec.supervisor === 1 ? '#EF4444' : '#10B981', // Rojo si ya está verificado, Verde si no
-                                        color: 'white',
-                                        border: 'none',                                            borderRadius: '4px',
-                                        fontSize: '12px',
-                                        fontWeight: 'bold',
-                                        cursor: 'pointer'
+                                        ...styles.btnSecondary,
+                                        margin: 0,
+                                        height: '48px',
+                                        width: '100%',
+                                        backgroundColor: rec.supervisor === 1 ? '#EF4444' : '#3B82F6', // Rojo si ya está verificado, Azul
                                     }}
                                 >
                                     {rec.supervisor === 1 ? 'Anular Verificación' : 'Verificar como Supervisor'}
@@ -204,15 +201,11 @@ export const UserGalleryScreen = ({
                                 <button 
                                     onClick={() => handleToggleVerificacion(rec.id_registro, 'Especialista', rec.especialista)} 
                                     style={{
-                                        marginTop: '8px',
-                                        padding: '6px 12px',
-                                        backgroundColor: rec.especialista === 1 ? '#EF4444' : '#3B82F6', // Rojo si ya está verificado, Azul si no
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        fontSize: '12px',
-                                        fontWeight: 'bold',
-                                        cursor: 'pointer'
+                                        ...styles.btnSecondary,
+                                        margin: 0,
+                                        height: '48px',
+                                        width: '100%',
+                                        backgroundColor: rec.especialista === 1 ? '#EF4444' : '#3B82F6', // Rojo si ya está verificado, Azul
                                     }}
                                 >
                                     {rec.especialista === 1 ? 'Anular Verificación' : 'Verificar como Especialista'}

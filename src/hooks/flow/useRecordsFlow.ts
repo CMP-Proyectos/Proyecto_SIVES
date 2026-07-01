@@ -25,6 +25,8 @@ export function useRecordsFlow(
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [editEvidenceFile, setEditEvidenceFile] = useState<File | null>(null);
   const [editComment, setEditComment] = useState("");
+  const [editLatitud, setEditLatitud] = useState<number | null>(null);
+  const [editLongitud, setEditLongitud] = useState<number | null>(null);
   const [editPreviewUrl, setEditPreviewUrl] = useState("");
 
   useEffect(() => {
@@ -92,6 +94,8 @@ export function useRecordsFlow(
       await updateRecordWithOptionalImage({
         recordId: item.id_registro,
         comment: editComment,
+        latitud: editLatitud,
+        longitud: editLongitud,
         replacementFile: editEvidenceFile,
         bucket: item.bucket,
         currentImagePath: item.ruta_archivo,
@@ -120,6 +124,8 @@ export function useRecordsFlow(
       setEditEvidenceFile(null);
       setEditPreviewUrl(record.url_foto ?? "");
       setIsPhotoModalOpen(true);
+      setEditLatitud(record.latitud ?? null);
+      setEditLongitud(record.longitud ?? null);
     }
   };
 
@@ -190,6 +196,10 @@ export function useRecordsFlow(
     setIsPhotoModalOpen,
     openEditModal,
     editComment,
+    editLatitud,
+    editLongitud,
+    setEditLatitud,
+    setEditLongitud,
     setEditComment,
     editPreviewUrl,
     setEditPreviewUrl,

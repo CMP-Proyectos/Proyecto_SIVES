@@ -90,6 +90,11 @@ export type RecordUpdatePayload = {
   Nombre_Archivo?: string;
 };
 
+export type UpdateCoordenadas = {
+  Latitud: number | null;
+  Longitud: number | null;
+}
+
 export type DeleteRecordParams = {
   recordId: number;
   checkedActivityId?: number | null;
@@ -101,6 +106,8 @@ export type DeleteRecordParams = {
 export type UpdateRecordWithImageParams = {
   recordId: number;
   comment: string;
+  latitud: number | null;
+  longitud: number | null;
   replacementFile?: File | null;
   bucket?: string | null;
   currentImagePath?: string | null;
