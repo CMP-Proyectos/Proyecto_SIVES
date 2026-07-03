@@ -116,8 +116,17 @@ export const UserGalleryScreen = ({
                         <div style={{color:'#94A3B8', fontWeight:'600'}}>SIN IMAGEN DISPONIBLE</div>
                     )}
                 </div>
-
-                <div style={{...styles.card, padding: '20px', boxShadow: 'none', border: '1px solid #E2E8F0'}}>
+                    <div style={{
+                        ...styles.card, 
+                        padding: '20px', 
+                        boxShadow: 'none', 
+                        border: '1px solid #E2E8F0',
+                        height: 'auto',             
+                        minHeight: 'min-content',   
+                        display: 'flex',
+                        flexDirection: 'column',
+                        flexShrink: 0
+                    }}>                    
                     <h4 style={{...styles.heading, fontSize: '14px', borderBottom: '1px solid #F1F5F9'}}>
                         DATOS DEL REPORTE
                     </h4>
@@ -214,34 +223,16 @@ export const UserGalleryScreen = ({
                         </div>
                     </div>
                 </div>
-
                 <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
+                    display: 'flex',
                     gap: '16px',
-                    ...styles.scrollSafeBottom,
-                    marginTop: '20px'
+                    marginTop: '24px', // Da un buen respiro después de la tarjeta
+                    paddingBottom: '40px'
                 }}>
-                    <button
-                        onClick={() => onDelete(rec)}
-                        style={{
-                            ...styles.btnDanger,
-                            margin: 0,
-                            height: '48px',
-                            width: '100%'
-                        }}
-                    >
+                    <button onClick={() => onDelete(rec)} style={{ ...styles.btnDanger, margin: 0, flex: 1, height: '48px' }}>
                         ELIMINAR
                     </button>
-                    <button
-                        onClick={onEdit}
-                        style={{
-                            ...styles.btnSecondary,
-                            margin: 0,
-                            height: '48px',
-                            width: '100%'
-                        }}
-                    >
+                    <button onClick={onEdit} style={{ ...styles.btnSecondary, margin: 0, flex: 1, height: '48px' }}>
                         EDITAR
                     </button>
                 </div>
