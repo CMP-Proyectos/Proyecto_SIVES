@@ -340,7 +340,7 @@ export const EvidenceFormScreen = ({
 
           <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={onCaptureFile} style={{ display: 'none' }} />
           <input ref={galleryInputRef} type="file" accept="image/*" multiple onChange={onCaptureFile} style={{ display: 'none' }} />
-          <input ref={fileInputRef} type="file" accept=".pdf,.xls,.xlsx,.tif,.tiff,.zip" multiple={isRegistro} onChange={onCaptureFile} style={{ display: "none" }} />
+          <input ref={fileInputRef} type="file" accept=".pdf,.xls,.xlsx,.tif,.tiff,.zip,.docx,.dwg" multiple={isRegistro} onChange={onCaptureFile} style={{ display: "none" }} />
 
           {isRegistro && !evidencePreview && (
             <div style={{ backgroundColor: '#F0F9FF', padding: '12px', borderRadius: '6px', marginBottom: '16px', border: '1px dashed #BAE6FD' }}>
