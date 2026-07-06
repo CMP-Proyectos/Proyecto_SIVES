@@ -143,6 +143,11 @@ export const UserGalleryScreen = ({
                         </div>
 
                         <div>
+                            <label style={styles.label}>Dueño</label>
+                            <div style={styles.text}>{rec.correo}</div>
+                        </div>
+
+                        <div>
                             <label style={styles.label}>FRENTE</label>
                             <div style={styles.text}>{rec.nombre_frente || "---"}</div>
                         </div>

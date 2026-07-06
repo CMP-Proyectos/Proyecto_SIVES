@@ -27,6 +27,7 @@ export interface UserRecord {
   ohms?: number | null;
   supervisor: number | null;
   especialista: number | null;
+  correo: string | null;
 }
 
 export type CreateRegistroPayload = {

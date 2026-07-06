@@ -479,6 +479,7 @@ export const fetchUserRecords = async (userId: string, isEspecialista: boolean|u
 
   const recordIds = registroRows.map((record) => record.ID_Registros);
   const imageCountByRecordId = new Map<number, number>();
+  const correoByRecordId = new Map<number, string>();
   if (recordIds.length > 0) {
     const { data: imageRows, error: imageError } = await supabase
       .from("Registro_Imagenes")
@@ -491,6 +492,19 @@ export const fetchUserRecords = async (userId: string, isEspecialista: boolean|u
       const recordId = row.ID_Registro;
       if (!recordId) continue;
       imageCountByRecordId.set(recordId, (imageCountByRecordId.get(recordId) || 0) + 1);
+    }
+
+    const { data: correoRows, error: correoError } = await supabase
+      .from("vista_registros_drive")
+      .select("ID_Registros, Correo")
+      .in("ID_Registros", recordIds);
+
+    if (correoError) throw correoError;
+
+    for (const row of (correoRows || [])) {
+      if (row.ID_Registros && row.Correo) {
+        correoByRecordId.set(row.ID_Registros, row.Correo);
+      }
     }
   }
 
@@ -545,6 +559,7 @@ export const fetchUserRecords = async (userId: string, isEspecialista: boolean|u
       ohms: record.Ohms ?? null,
       supervisor: record.Supervisor,
       especialista: record.Especialista,
+      correo: correoByRecordId.get(record.ID_Registros) || null,
     };
   });
 
@@ -621,6 +636,7 @@ const normalizeGlobalMapRow = (row: GlobalMapRpcRow): MapRecord | null => {
   const ohms = toNullableNumber(getValueByAliases(row, ["ohms", "Ohms", "OHMS"]));
   const especialista = toNullableNumber(getValueByAliases(row, ["especialista", "Especialista", "ESPECIALISTA"]))
   const supervisor = toNullableNumber(getValueByAliases(row, ["supervisor", "Supervisor", "SUPERVISOR"]))
+  const correo = toNullableString(getValueByAliases(row, ["correo", "Correo", "email"]));
 
   if (!idRegistro || !fechaSubida || !nombreLocalidad || !nombreDetalle || !nombreActividad) {
     return null;
@@ -663,6 +679,7 @@ const normalizeGlobalMapRow = (row: GlobalMapRpcRow): MapRecord | null => {
     ohms,
     especialista,
     supervisor,
+    correo,
     source: "global",
   };
 };
