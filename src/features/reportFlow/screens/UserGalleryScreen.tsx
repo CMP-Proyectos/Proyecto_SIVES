@@ -391,7 +391,7 @@ export const UserGalleryScreen = ({
                 value={gallery.selectedStructure || ""}
                 options={structureOptions}
                 onChange={(value) => gallery.setSelectedStructure(value || null)}
-                placeholder="Todas las estructuras"
+                placeholder="Todas las especialidades"
                 disabled={!gallery.selectedItem}
             />
 
