@@ -24,6 +24,7 @@ import { useCatalogFlow } from "./flow/useCatalogFlow";
 import { useEvidenceFlow } from "./flow/useEvidenceFlow";
 import { useRecordsFlow } from "./flow/useRecordsFlow";
 import { useMapFlow } from "./flow/useMapFlow";
+import { useGalleryFlow } from "./flow/useGalleryFlow";
 
 const MASTER_BUCKET = "user-assets";
 const MAX_EVIDENCE_IMAGES = 5;
@@ -63,6 +64,14 @@ export function useReportFlow() {
     activities: catalog.activities,
     userRecords: records.userRecords,
     isLoadingUserRecords: records.isLoadingRecords,
+    loadUserRecords,
+    showToast,
+  });
+
+  const gallery = useGalleryFlow({
+    projects: catalog.projects,
+    activities: catalog.activities,
+    userRecords: records.userRecords,
     loadUserRecords,
     showToast,
   });
@@ -776,6 +785,7 @@ export function useReportFlow() {
     registroData : catalog.registroData, setRegistroData: catalog.setRegistroData,
     saveReport, getMapUrl,
     map,
+    gallery,
     userRecords: records.userRecords, isLoadingRecords: records.isLoadingRecords, selectedRecordId: records.selectedRecordId, setSelectedRecordId: records.setSelectedRecordId,
     requestDeleteRecord: records.requestDeleteRecord,
     handleDownloadCSV: records.handleCreateCSV,

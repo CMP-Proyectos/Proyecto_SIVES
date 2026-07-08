@@ -1,25 +1,135 @@
-import React from 'react';
-import { styles } from '../../../theme/styles';
+import React, { useMemo } from 'react';import 
+{ styles } from '../../../theme/styles';
 import type { UserRecord } from '../../../types/records.types';
 import { useReportFlow } from "../../../hooks/useReportFlow";
 
 interface Props {
-  records: UserRecord[];
-  isLoading: boolean;
-  selectedRecordId: number | null;
-  onSelectRecord: (id: number | null) => void;
-  onDelete: (rec: UserRecord) => void;
-  onEdit: () => void;
-  actualizarEstado: (
-    idRegistro: number, 
-    tipoColumna: 'Supervisor' | 'Especialista', 
-    valorActual: number | null
-  ) => Promise<void>;
+    records: UserRecord[];
+    isLoading: boolean;
+    selectedRecordId: number | null;
+    onSelectRecord: (id: number | null) => void;
+    onDelete: (rec: UserRecord) => void;
+    onEdit: () => void;
+    actualizarEstado: (
+        idRegistro: number, 
+        tipoColumna: 'Supervisor' | 'Especialista', 
+        valorActual: number | null
+    ) => Promise<void>;
 }
+
+type Option = {
+  value: string;
+  label: string;
+};
+
+type FilterSelectProps = {
+  label: string;
+  value: string;
+  options: Option[];
+  onChange: (value: string) => void;
+  placeholder: string;
+  disabled?: boolean;
+};
+
+const FilterSelect = ({
+  label,
+  value,
+  options,
+  onChange,
+  placeholder,
+  disabled = false,
+}: FilterSelectProps) => (
+  <div>
+    <label style={{ ...styles.label, fontSize: '11px', marginBottom: '4px', display: 'block' }}>{label}</label>
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      disabled={disabled}
+      style={{
+        ...styles.selects,
+        width: '100%',
+        padding: '8px 12px',
+        borderRadius: '8px',
+        border: '1px solid #CBD5E1',
+        backgroundColor: disabled ? '#F8FAFC' : '#FFFFFF',
+        color: disabled ? '#94A3B8' : '#334155',
+        opacity: disabled ? 0.6 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
+      }}
+    >
+      <option value="">{placeholder}</option>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </div>
+);
 
 export const UserGalleryScreen = ({
     records, isLoading, selectedRecordId, onSelectRecord, onDelete, onEdit, actualizarEstado
 }: Props) => {
+
+  const flow = useReportFlow();
+  const isSupervisor = flow.sessionUser?.app_metadata?.es_supervisor === true;
+  const isEspecialista = flow.sessionUser?.app_metadata?.es_especialista === true;
+  const { gallery } = flow;
+  const filteredRecords = useMemo(() => {
+    if (!records) return [];
+    const normalize = (text: string | null | undefined) => (text || "").trim().toLowerCase();
+
+    return records.filter(rec => {
+      const proyectoStr = rec.nombre_proyecto || (rec.bucket ? rec.bucket.replace(/_/g, ' ').toUpperCase() : null);
+      if (gallery.selectedProjectName && normalize(proyectoStr) !== normalize(gallery.selectedProjectName)) return false;
+      
+      if (gallery.selectedItem && normalize(rec.nombre_item) !== normalize(gallery.selectedItem)) return false;
+
+      if (gallery.selectedStructure && normalize(rec.nombre_detalle) !== normalize(gallery.selectedStructure)) return false;
+      
+      if (gallery.selectedFrontName && normalize(rec.nombre_frente) !== normalize(gallery.selectedFrontName)) return false;
+      
+      if (gallery.selectedLocalityName && normalize(rec.nombre_localidad) !== normalize(gallery.selectedLocalityName)) return false;
+
+      if (gallery.selectedGroup && normalize(rec.nombre_grupo) !== normalize(gallery.selectedGroup)) return false;
+
+      if (gallery.selectedActivityName && normalize(rec.nombre_actividad) !== normalize(gallery.selectedActivityName)) return false;
+      
+      return true;
+    });
+  }, [
+    records, 
+    gallery.selectedProjectName,
+    gallery.selectedItem,
+    gallery.selectedStructure, 
+    gallery.selectedLocalityName,
+    gallery.selectedGroup,
+    gallery.selectedActivityName
+  ]);
+
+  const projectOptions = gallery.projects.map((project) => ({
+    value: String(project.ID_Proyectos),
+    label: project.Proyecto_Nombre,
+  }));
+  const itemOptions = gallery.items.map((item) => ({ value: item, label: item }));
+  const frontOptions = gallery.fronts.map((front) => ({
+    value: String(front.ID_Frente),
+    label: front.Nombre_Frente,
+  }));
+  const localityOptions = gallery.localities.map((locality) => ({
+    value: String(locality.ID_Localidad),
+    label: locality.Nombre_Localidad,
+  }));
+  const structureOptions = gallery.structures.map((structure) => ({
+    value: structure,
+    label: structure,
+  }));
+  const groupOptions = gallery.groups.map((group) => ({ value: group, label: group }));
+  const activityOptions = gallery.activities.map((activity) => ({
+    value: String(activity.ID_Actividad),
+    label: activity.Nombre_Actividad,
+  }));
+
   const buildCombinedLabel = (...values: (string | null | undefined)[]) => {
     const filteredValues = values.map((value) => value?.trim()).filter(Boolean);
     return filteredValues.length > 0 ? filteredValues.join(" - ") : "Sin información";
@@ -47,20 +157,16 @@ export const UserGalleryScreen = ({
     }
   };
 
-  const flow = useReportFlow();
-  const isSupervisor = flow.sessionUser?.app_metadata?.es_supervisor === true;
-  const isEspecialista = flow.sessionUser?.app_metadata?.es_especialista === true;
-
   React.useEffect(() => {
     console.info("[records] UserGalleryScreen render", {
       isLoading,
-      renderedCount: records.length,
+      renderedCount: filteredRecords.length,
       selectedRecordId,
     });
-  }, [isLoading, records.length, selectedRecordId]);
+  }, [isLoading, filteredRecords.length, selectedRecordId]);
 
   const renderDetail = () => {
-    const rec = records.find(r => r.id_registro === selectedRecordId);
+    const rec = filteredRecords.find(r => r.id_registro === selectedRecordId);
     if (!rec) return null;
 
     const proyectoStr = rec.nombre_proyecto || (rec.bucket ? rec.bucket.replace(/_/g, ' ').toUpperCase() : "GENERAL");
@@ -231,8 +337,7 @@ export const UserGalleryScreen = ({
                 <div style={{
                     display: 'flex',
                     gap: '16px',
-                    marginTop: '24px', // Da un buen respiro después de la tarjeta
-                    paddingBottom: '40px'
+                    marginTop: '24px',
                 }}>
                     <button onClick={() => onDelete(rec)} style={{ ...styles.btnDanger, margin: 0, flex: 1, height: '48px' }}>
                         ELIMINAR
@@ -248,9 +353,92 @@ export const UserGalleryScreen = ({
 
   return (
     <div style={styles.card}>
-        <div style={styles.flexBetween}>
+        <div style={{ ...styles.flexBetween, marginBottom: '16px' }}>
             <h2 style={styles.heading}>Mis Registros</h2>
-            <span style={{fontSize:'12px', color:'#64748B', fontWeight:'600'}}>{records?.length || 0} ITEMS</span>
+            <span style={{fontSize:'12px', color:'#64748B', fontWeight:'600'}}>
+                {filteredRecords?.length || 0} ITEMS 
+            </span>
+        </div>
+
+        <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: "12px",
+            marginBottom: "16px",
+            padding: "16px",
+            backgroundColor: "#F8FAFC",
+            borderRadius: "12px",
+            border: "1px solid #E2E8F0"
+        }}>
+            <FilterSelect
+                label="Proyecto"
+                value={gallery.selectedProjectId ? String(gallery.selectedProjectId) : ""}
+                options={projectOptions}
+                onChange={(value) => gallery.setSelectedProjectId(value ? Number(value) : null)}
+                placeholder="Todos los proyectos"
+            />
+            <FilterSelect
+                label="Sección"
+                value={gallery.selectedItem || ""}
+                options={itemOptions}
+                onChange={(value) => gallery.setSelectedItem(value || null)}
+                placeholder="Todas las secciones"
+                disabled={!gallery.selectedProjectId}
+            />
+            <FilterSelect
+                label="Especialidad"
+                value={gallery.selectedStructure || ""}
+                options={structureOptions}
+                onChange={(value) => gallery.setSelectedStructure(value || null)}
+                placeholder="Todas las estructuras"
+                disabled={!gallery.selectedItem}
+            />
+
+            <FilterSelect
+                label="Frente"
+                value={gallery.selectedFrontId ? String(gallery.selectedFrontId) : ""}
+                options={frontOptions}
+                onChange={(value) => gallery.setSelectedFrontId(value ? Number(value) : null)}
+                placeholder="Todos los frentes"
+                disabled={!gallery.selectedProjectId || !gallery.selectedItem}
+            />
+
+            <FilterSelect
+                label="Localidad"
+                value={gallery.selectedLocalityId ? String(gallery.selectedLocalityId) : ""}
+                options={localityOptions}
+                onChange={(value) => gallery.setSelectedLocalityId(value ? Number(value) : null)}
+                placeholder="Todas las localidades"
+                disabled={!gallery.selectedFrontId}
+            />
+
+            <FilterSelect
+                label="Grupo"
+                value={gallery.selectedGroup || ""}
+                options={groupOptions}
+                onChange={(value) => gallery.setSelectedGroup(value || null)}
+                placeholder="Todos los grupos"
+                disabled={!gallery.selectedStructure}
+            />
+
+            <FilterSelect
+                label="Actividad"
+                value={gallery.selectedActivityId ? String(gallery.selectedActivityId) : ""}
+                options={activityOptions}
+                onChange={(value) => gallery.setSelectedActivityId(value ? Number(value) : null)}
+                placeholder="Todas las actividades"
+                disabled={!gallery.selectedGroup}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <button 
+                    type="button" 
+                    onClick={gallery.clearFilters} 
+                    style={{ ...styles.btnSecondary, margin: 0, width: '100%', height: '38px', fontSize: '12px' }}
+                >
+                    Limpiar filtros
+                </button>
+            </div>
         </div>
 
         {selectedRecordId && renderDetail()}
@@ -264,7 +452,7 @@ export const UserGalleryScreen = ({
                 </div>
             ) : (
                 <div style={styles.grid}>
-                    {records.map(rec => {
+                    {filteredRecords.map(rec => {
                         const primaryLabel = getPrimaryRecordLabel(rec);
                         const imageCount = rec.total_imagenes || 0;
 
