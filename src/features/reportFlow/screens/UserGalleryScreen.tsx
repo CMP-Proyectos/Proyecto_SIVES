@@ -97,11 +97,12 @@ export const UserGalleryScreen = ({
       
       return true;
     });
-  }, [
+}, [
     records, 
     gallery.selectedProjectName,
     gallery.selectedItem,
     gallery.selectedStructure, 
+    gallery.selectedFrontName,
     gallery.selectedLocalityName,
     gallery.selectedGroup,
     gallery.selectedActivityName
