@@ -179,7 +179,7 @@ export async function deleteRecordWithAssets(params: DeleteRecordParams): Promis
 export async function updateRecordWithOptionalImage(
   params: UpdateRecordWithImageParams
 ): Promise<void> {
-  const updates: RecordUpdatePayload = { Comentario: params.comment };
+  const updates: RecordUpdatePayload = { Comentario: params.comment, Ohms: params.ohms };
   const coordenadas: UpdateCoordenadas = { Latitud: params.latitud, Longitud: params.longitud};
 
   if (params.replacementFile && params.bucket) {

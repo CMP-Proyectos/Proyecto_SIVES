@@ -12,8 +12,13 @@ export const isCuadroTexto = (actividad?: {
   const grupo = normalizeText(actividad?.Grupo);
   const nombre = normalizeText(actividad?.Nombre_Actividad);
 
+    const palabrasClaveArchivo = [
+    "calculos",
+    "foto de",
+  ];
+
   return (
-    nombre.includes("foto de") &&
+    palabrasClaveArchivo.some((palabra) => nombre.includes(palabra)) &&
     grupo.includes("resistividad")
   );
 };
@@ -49,7 +54,8 @@ export const isIngresoPorArchivo = (actividad?: {
     "autorizacion",
     "acta",
     "padron",
-    "autoridad"
+    "autoridad",
+    "calculos"
   ];
 
   return palabrasClaveArchivo.some((palabra) => nombre.includes(palabra));
@@ -65,6 +71,33 @@ export const isRegistroUsuarios = (actividad?: {
   return (
     nombre.includes("registro de") &&
     grupo.includes("padron")
+  );
+};
+
+export const puedeNoReiniciar = (actividad?: {
+  Grupo?: string | null;
+  Nombre_Actividad?: string | null;
+} | null) => {
+  const grupo = normalizeText(actividad?.Grupo);
+  const nombre = normalizeText(actividad?.Nombre_Actividad);
+
+    const palabrasClaveNombre = [
+      "foto de la",
+      "hitos",
+      "estaca",
+      "registro",
+      "fotografia de"
+    ];
+
+      const palabrasClaveGrupo = [
+      "resistividad",
+      "levantamiento topografico",
+      "padron"
+    ];
+
+  return (
+    palabrasClaveNombre.some((palabra) => nombre.includes(palabra)) &&
+    palabrasClaveGrupo.some((palabra) => grupo.includes(palabra))
   );
 };
 

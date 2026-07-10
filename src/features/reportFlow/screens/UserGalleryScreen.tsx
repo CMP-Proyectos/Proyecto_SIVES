@@ -108,28 +108,33 @@ export const UserGalleryScreen = ({
     gallery.selectedActivityName
   ]);
 
-  const projectOptions = gallery.projects.map((project) => ({
-    value: String(project.ID_Proyectos),
-    label: project.Proyecto_Nombre,
-  }));
-  const itemOptions = gallery.items.map((item) => ({ value: item, label: item }));
-  const frontOptions = gallery.fronts.map((front) => ({
-    value: String(front.ID_Frente),
-    label: front.Nombre_Frente,
-  }));
-  const localityOptions = gallery.localities.map((locality) => ({
-    value: String(locality.ID_Localidad),
-    label: locality.Nombre_Localidad,
-  }));
-  const structureOptions = gallery.structures.map((structure) => ({
-    value: structure,
-    label: structure,
-  }));
-  const groupOptions = gallery.groups.map((group) => ({ value: group, label: group }));
-  const activityOptions = gallery.activities.map((activity) => ({
-    value: String(activity.ID_Actividad),
-    label: activity.Nombre_Actividad,
-  }));
+    const projectOptions = gallery.projects.map((project) => ({
+        value: String(project.id),
+        label: project.name,
+    }));
+    const itemOptions = gallery.items.map((item) => ({ value: item, label: item }));
+    
+    const frontOptions = gallery.fronts.map((front) => ({
+        value: String(front.id || front.name), // Usa el nombre como valor de respaldo si no hay ID
+        label: front.name,
+    }));
+    
+    const localityOptions = gallery.localities.map((locality) => ({
+        value: String(locality.id || locality.name),
+        label: locality.name,
+    }));
+    
+    const structureOptions = gallery.structures.map((structure) => ({
+        value: structure,
+        label: structure,
+    }));
+    
+    const groupOptions = gallery.groups.map((group) => ({ value: group, label: group }));
+    
+    const activityOptions = gallery.activities.map((activity) => ({
+        value: String(activity.id || activity.name),
+        label: activity.name,
+    }));
 
   const buildCombinedLabel = (...values: (string | null | undefined)[]) => {
     const filteredValues = values.map((value) => value?.trim()).filter(Boolean);
@@ -384,7 +389,6 @@ export const UserGalleryScreen = ({
                 options={itemOptions}
                 onChange={(value) => gallery.setSelectedItem(value || null)}
                 placeholder="Todas las secciones"
-                disabled={!gallery.selectedProjectId}
             />
             <FilterSelect
                 label="Especialidad"
@@ -392,7 +396,6 @@ export const UserGalleryScreen = ({
                 options={structureOptions}
                 onChange={(value) => gallery.setSelectedStructure(value || null)}
                 placeholder="Todas las especialidades"
-                disabled={!gallery.selectedItem}
             />
 
             <FilterSelect
@@ -401,7 +404,6 @@ export const UserGalleryScreen = ({
                 options={frontOptions}
                 onChange={(value) => gallery.setSelectedFrontId(value ? Number(value) : null)}
                 placeholder="Todos los frentes"
-                disabled={!gallery.selectedProjectId || !gallery.selectedItem}
             />
 
             <FilterSelect
@@ -410,7 +412,6 @@ export const UserGalleryScreen = ({
                 options={localityOptions}
                 onChange={(value) => gallery.setSelectedLocalityId(value ? Number(value) : null)}
                 placeholder="Todas las localidades"
-                disabled={!gallery.selectedFrontId}
             />
 
             <FilterSelect
@@ -419,7 +420,6 @@ export const UserGalleryScreen = ({
                 options={groupOptions}
                 onChange={(value) => gallery.setSelectedGroup(value || null)}
                 placeholder="Todos los grupos"
-                disabled={!gallery.selectedStructure}
             />
 
             <FilterSelect
@@ -428,7 +428,6 @@ export const UserGalleryScreen = ({
                 options={activityOptions}
                 onChange={(value) => gallery.setSelectedActivityId(value ? Number(value) : null)}
                 placeholder="Todas las actividades"
-                disabled={!gallery.selectedGroup}
             />
 
             <div style={{ display: 'flex', alignItems: 'flex-end' }}>

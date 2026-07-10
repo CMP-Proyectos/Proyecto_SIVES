@@ -34,9 +34,10 @@ interface Props {
   isCoordenadas: boolean;
   isLoading: boolean;
   isRegistro: boolean;
+  isReinicio: boolean;
   registroData?: RegistroUsuariosData;
   setRegistroData?: (data: RegistroUsuariosData) => void;
-  onSave: () => void;
+  onSave: (regresar: boolean) => void;
   previousRecord?: any;
 }
 
@@ -47,7 +48,7 @@ export const EvidenceFormScreen = ({
   isFetchingGps, onCaptureGps,
   utmZone, setUtmZone, utmEast, setUtmEast, utmNorth, setUtmNorth, onUpdateUtm,
   evidenceImages, evidencePreview, isAnalyzing, aiFeedback, onCaptureFile, onRemoveImage,
-  predio, setPredio, prediosList = [], registroData, setRegistroData, note, setNote, ohms, setOhms, isPatActivity, isSeleccion, requiereArchivo,isCoordenadas, isRegistro,
+  predio, setPredio, prediosList = [], registroData, setRegistroData, note, setNote, ohms, setOhms, isPatActivity, isSeleccion, requiereArchivo,isCoordenadas, isRegistro, isReinicio,
   isLoading, onSave,
   previousRecord
 }: Props) => {
@@ -543,7 +544,7 @@ export const EvidenceFormScreen = ({
 
           <div style={{ marginTop: '8px', paddingBottom: '8px' }}>
             <button
-              onClick={onSave}
+              onClick={() => onSave(true)}
               disabled={isLoading || evidenceImages.length === 0}
               style={{
                 ...styles.btnPrimary,
@@ -554,6 +555,22 @@ export const EvidenceFormScreen = ({
             >
               {isLoading ? "GUARDANDO..." : "GUARDAR Y FINALIZAR"}
             </button>
+          </div>
+          <div>
+            {isReinicio && (
+              <button
+                onClick={() => onSave(false)}
+                disabled={isLoading || evidenceImages.length === 0}
+                style={{
+                  ...styles.btnPrimary,
+                  marginTop: 0,
+                  opacity: (isLoading || evidenceImages.length === 0) ? 0.6 : 1,
+                  cursor: (isLoading || evidenceImages.length === 0) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isLoading ? "GUARDANDO..." : "GUARDAR Y SEGUIR"}
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@ import {
 } from "../services/offlineSyncService";
 import { saveReportOnline } from "../repositories/reports.repository";
 import { Step, ToastState, ConfirmModalState } from "../features/reportFlow/types";
-import { isCuadroTexto, parseOhmsValue, getOpcionesSeleccion, isIngresoPorArchivo, requiereCoordenadas, isRegistroUsuarios } from "../utils/activity";
+import { isCuadroTexto, parseOhmsValue, getOpcionesSeleccion, isIngresoPorArchivo, requiereCoordenadas, isRegistroUsuarios, puedeNoReiniciar } from "../utils/activity";
 
 import { useSessionFlow } from "./flow/useSessionFlow";
 import type { SessionUser } from "./flow/useSessionFlow";
@@ -470,7 +470,7 @@ export function useReportFlow() {
     }
   }, [catalog, projectAccessCode]);
 
-  const saveReport = async () => {
+  const saveReport = async (regresar: boolean) => {
     if (evidence.evidenceFiles.length === 0 || !session.sessionUser || !catalog.selectedDetail) return showToast("Faltan datos", "error");
     if (evidence.evidenceFiles.length > MAX_EVIDENCE_IMAGES) return showToast("Maximo 5 imagenes", "error");
 
@@ -480,6 +480,7 @@ export function useReportFlow() {
     const isCoordenadas = requiereCoordenadas(catalog.selectedActivity);
     const isRegistro = isRegistroUsuarios(catalog.selectedActivity);
     const parsedOhms = parseOhmsValue(evidence.ohms);
+    const isReinicio = puedeNoReiniciar(catalog.selectedActivity);
 
     
     
@@ -593,8 +594,9 @@ export function useReportFlow() {
       } else {
         showToast("Reporte guardado exitosamente", "success");
       }
-      handleGoHome();
-      
+      if (regresar = false){
+        handleGoHome();
+      }
     } catch (err) {
       if (isNetworkUnavailableError(err)) {
         console.warn("[SAVE] Error de red detectado; aplicando fallback a pendingUploads", err);
@@ -782,6 +784,7 @@ export function useReportFlow() {
     utmZone: evidence.utmZone, setUtmZone: evidence.setUtmZone, utmEast: evidence.utmEast, setUtmEast: evidence.setUtmEast, utmNorth: evidence.utmNorth, setUtmNorth: evidence.setUtmNorth, handleUpdateFromUtm: evidence.handleUpdateFromUtm,
     evidenceImages: evidence.evidenceImages, evidencePreview: evidence.evidencePreview, handleCaptureFile: evidence.handleCaptureFile, removeEvidenceImage: evidence.removeEvidenceImage, note: evidence.note, setNote: evidence.setNote, isFetchingGps: evidence.isFetchingGps, isAnalyzing: evidence.isAnalyzing, aiFeedback: evidence.aiFeedback,
     ohms: evidence.ohms, setOhms: evidence.setOhms, isPatActivity: isCuadroTexto(catalog.selectedActivity), isSelector : getOpcionesSeleccion(catalog.selectedActivity), isArchivo : isIngresoPorArchivo(catalog.selectedActivity), isCoordenadas : requiereCoordenadas(catalog.selectedActivity), isRegistro : isRegistroUsuarios(catalog.selectedActivity),
+    isReinicio: puedeNoReiniciar(catalog.selectedActivity),
     registroData : catalog.registroData, setRegistroData: catalog.setRegistroData,
     saveReport, getMapUrl,
     map,
@@ -792,7 +795,8 @@ export function useReportFlow() {
     isPhotoModalOpen: records.isPhotoModalOpen,
     openEditModal: records.openEditModal,
     closeEditModal: () => records.setIsPhotoModalOpen(false),
-    editLatitud: records.editLatitud, setEditLatitud: records.setEditLatitud, editLongitud : records.editLongitud, setEditLongitud: records.setEditLongitud,
+    editLatitud: records.editLatitud, setEditLatitud: records.setEditLatitud, editLongitud : records.editLongitud, setEditLongitud: records.setEditLongitud, editEspecificacion: records.editEspecificacion, setEditEspecificacion: records.setEditEspecificacion,
+    editActividad: records.Actividad, editGrupo: records.Grupo,
     editComment: records.editComment, setEditComment: records.setEditComment, editPreviewUrl: records.editPreviewUrl, handleEditFileSelect: (e:any) => { if(e.target.files?.[0]) { records.setEditEvidenceFile(e.target.files[0]); records.setEditPreviewUrl(URL.createObjectURL(e.target.files[0])); } },
     saveRecordEdits: records.saveRecordEdits,
     handleGoHome, goBack,

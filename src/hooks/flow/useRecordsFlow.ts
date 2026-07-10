@@ -24,9 +24,12 @@ export function useRecordsFlow(
 
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [editEvidenceFile, setEditEvidenceFile] = useState<File | null>(null);
+  const [Actividad, setActividad] = useState("");
+  const [Grupo, setGrupo] = useState("");
   const [editComment, setEditComment] = useState("");
   const [editLatitud, setEditLatitud] = useState<number | null>(null);
   const [editLongitud, setEditLongitud] = useState<number | null>(null);
+  const [editEspecificacion, setEditEspecificacion] = useState("");
   const [editPreviewUrl, setEditPreviewUrl] = useState("");
 
   useEffect(() => {
@@ -96,6 +99,7 @@ export function useRecordsFlow(
         comment: editComment,
         latitud: editLatitud,
         longitud: editLongitud,
+        ohms: editEspecificacion,
         replacementFile: editEvidenceFile,
         bucket: item.bucket,
         currentImagePath: item.ruta_archivo,
@@ -126,6 +130,9 @@ export function useRecordsFlow(
       setIsPhotoModalOpen(true);
       setEditLatitud(record.latitud ?? null);
       setEditLongitud(record.longitud ?? null);
+      setActividad(record.nombre_actividad);
+      setGrupo(record.nombre_grupo ?? "");
+      setEditEspecificacion(record.ohms?.toString() ?? "");
     }
   };
 
@@ -184,6 +191,8 @@ export function useRecordsFlow(
   };
 
   return {
+    Actividad,
+    Grupo,
     userRecords,
     isLoadingRecords,
     hasLoadedUserRecords,
@@ -198,8 +207,10 @@ export function useRecordsFlow(
     editComment,
     editLatitud,
     editLongitud,
+    editEspecificacion,
     setEditLatitud,
     setEditLongitud,
+    setEditEspecificacion,
     setEditComment,
     editPreviewUrl,
     setEditPreviewUrl,

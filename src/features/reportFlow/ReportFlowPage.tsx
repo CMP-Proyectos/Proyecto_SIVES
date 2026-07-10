@@ -553,12 +553,11 @@ export default function ReportFlowPage() {
             requiereArchivo = {flow.isArchivo}
             isCoordenadas = {flow.isCoordenadas}
             isRegistro = {flow.isRegistro}
+            isReinicio = {flow.isReinicio}
             registroData = {flow.registroData}
             setRegistroData = {flow.setRegistroData}
             isLoading={flow.isLoading}
-            onSave={() => {
-              flow.saveReport();
-            }}
+            onSave={flow.saveReport}
           />
         )}
 
@@ -667,8 +666,12 @@ export default function ReportFlowPage() {
         comment={flow.editComment}
         latitud = {flow.editLatitud}
         longitud = {flow.editLongitud}
+        Actividad= {flow.editActividad}
+        Grupo = {flow.editGrupo}
+        especificacion={flow.editEspecificacion}
         onLatitudChange = {flow.setEditLatitud}
         onLongitudChange = {flow.setEditLongitud}
+        onEspecificacionChange={flow.setEditEspecificacion}
         onCommentChange={flow.setEditComment}
         onFileSelect={flow.handleEditFileSelect}
         onClose={flow.closeEditModal}

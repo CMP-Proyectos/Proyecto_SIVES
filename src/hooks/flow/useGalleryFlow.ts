@@ -1,25 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { db } from "../../services/db_local";
-import {
-  ActivityRecord,
-  DetailRecord,
-  fetchGlobalMapRecords,
-  FrontRecord,
-  getUserMapRecords,
-  isNetworkUnavailableError,
-  LocalityRecord,
-  MapRecord,
-  ProjectRecord,
-  PrediosRecord,
-} from "../../services/dataService";
+import { useCallback, useMemo, useState } from "react";
+import type { ActivityRecord, ProjectRecord } from "../../services/dataService";
 import type { UserRecord } from "../../types/records.types";
-import { buildCatalogHierarchySnapshot, sortByLabel } from "./catalogHierarchy";
+import { sortByLabel } from "./catalogHierarchy"; // Puedes mantener sortByLabel si lo necesitas o quitarlo
 
 type ToastType = "success" | "error" | "info";
 
 type UseGalleryFlowParams = {
   projects: ProjectRecord[];
-  activities: ActivityRecord[];
+  activities: ActivityRecord[]; // Ya no los usamos para las opciones, pero si los necesitas para otra cosa los dejas
   userRecords: UserRecord[];
   loadUserRecords: () => Promise<void>;
   showToast: (msg: string, type: ToastType) => void;
@@ -34,15 +22,13 @@ export type UseGalleryFlowResult = {
   selectedStructure: string | null;
   selectedGroup: string | null;
   selectedActivityId: number | null;
-  projects: ProjectRecord[];
+  projects: { id: number; name: string }[];
   items: string[];
-  fronts: FrontRecord[];
-  record : UserRecord[];
-  localities: LocalityRecord[];
-  substations: string[];
+  fronts: { id: number | null; name: string }[];
+  localities: { id: number | null; name: string }[];
   structures: string[];
   groups: string[];
-  activities: ActivityRecord[];
+  activities: { id: number | null; name: string }[];
   selectedProjectName: string | null;
   selectedFrontName: string | null;
   selectedLocalityName: string | null;
@@ -58,34 +44,14 @@ export type UseGalleryFlowResult = {
   setSelectedStructure: (structure: string | null) => void;
   setSelectedGroup: (group: string | null) => void;
   setSelectedActivityId: (activityId: number | null) => void;
-  setRecords : (record: UserRecord[]) => void;
   clearFilters: () => void;
 };
 
 const normalizeText = (value: string | null | undefined) => (value || "").trim().toLowerCase();
 
-const matchesText = (recordValue: string | null | undefined, filterValue: string | null) => {
-  if (!filterValue) return true;
-  return normalizeText(recordValue) === normalizeText(filterValue);
-}; 
-
-const matchesIdOrText = (
-  recordId: number | null | undefined,
-  filterId: number | null,
-  recordLabel: string | null | undefined,
-  filterLabel: string | null
-) => {
-  if (!filterId && !filterLabel) return true;
-  if (filterId && recordId) return recordId === filterId;
-  return matchesText(recordLabel, filterLabel);
-};
-
 export function useGalleryFlow({
-  projects,
-  activities,
   userRecords,
-  loadUserRecords,
-  showToast,
+  projects: rawProjects,
 }: UseGalleryFlowParams): UseGalleryFlowResult {
   const [selectedProjectId, setSelectedProjectIdState] = useState<number | null>(null);
   const [selectedItem, setSelectedItemState] = useState<string | null>(null);
@@ -96,14 +62,11 @@ export function useGalleryFlow({
   const [selectedGroup, setSelectedGroupState] = useState<string | null>(null);
   const [selectedActivityId, setSelectedActivityIdState] = useState<number | null>(null);
   const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null);
-  const [fronts, setFronts] = useState<FrontRecord[]>([]);
-  const [localities, setLocalities] = useState<LocalityRecord[]>([]);
-  const [predios, setPredios] = useState<PrediosRecord[]>([]); 
-  const [details, setDetails] = useState<DetailRecord[]>([]);
-  const [record, setRecords] = useState<UserRecord[]>([]);
-  const [globalError, setGlobalError] = useState<string | null>(null);
+  
+  const [globalError] = useState<string | null>(null);
 
-  const resetLowerFilters = useCallback(() => {
+  const clearFilters = useCallback(() => {
+    setSelectedProjectIdState(null);
     setSelectedItemState(null);
     setSelectedFrontIdState(null);
     setSelectedLocalityIdState(null);
@@ -113,169 +76,90 @@ export function useGalleryFlow({
     setSelectedActivityIdState(null);
     setSelectedRecordId(null);
   }, []);
+  
+const options = useMemo(() => {
+    // 1. Definimos funciones auxiliares para saber si un registro CUMPLE con un filtro seleccionado
+    const pProj = (rec: UserRecord) => !selectedProjectId || rec.id_proyecto === selectedProjectId;
+    const pItem = (rec: UserRecord) => !selectedItem || rec.nombre_item === selectedItem;
+    const pFront = (rec: UserRecord) => !selectedFrontId || rec.id_frente === selectedFrontId;
+    const pLoc = (rec: UserRecord) => !selectedLocalityId || rec.id_localidad === selectedLocalityId;
+    const pStruct = (rec: UserRecord) => !selectedStructure || rec.nombre_detalle === selectedStructure;
+    const pGroup = (rec: UserRecord) => !selectedGroup || rec.nombre_grupo === selectedGroup;
+    const pAct = (rec: UserRecord) => !selectedActivityId || rec.id_actividad === selectedActivityId;
 
-    const clearFilters = useCallback(() => {
-    setSelectedItemState(null);
-    setSelectedFrontIdState(null);
-    setSelectedLocalityIdState(null);
-    setSelectedSubstationState(null);
-    setSelectedStructureState(null);
-    setSelectedGroupState(null);
-    setSelectedActivityIdState(null);
-    setSelectedRecordId(null);
-  }, []);
+    const uniqueProjects = new Map<number, string>();
+    const uniqueItems = new Set<string>();
+    const uniqueFronts = new Map<number | string, { id: number | null; name: string }>();
+    const uniqueLocalities = new Map<number | string, { id: number | null; name: string }>();
+    const uniqueStructures = new Set<string>();
+    const uniqueGroups = new Set<string>();
+    const uniqueActivities = new Map<number | string, { id: number | null; name: string }>();
 
-  const loadProjectScope = useCallback(async (projectId: number) => {
-    const projectFronts = await db.catalog_fronts.where("ID_Proyecto").equals(projectId).toArray();
-    const frontIds = projectFronts.map((front) => front.ID_Frente);
+    userRecords.forEach((rec) => {
+      
+      if (pItem(rec) && pFront(rec) && pLoc(rec) && pStruct(rec) && pGroup(rec) && pAct(rec)) {
+        if (rec.id_proyecto) {
+          const pName = rawProjects.find(p => p.ID_Proyectos === rec.id_proyecto)?.Proyecto_Nombre || rec.nombre_proyecto || "Desconocido";
+          uniqueProjects.set(rec.id_proyecto, pName);
+        }
+      }
 
-    const projectLocalities =
-      frontIds.length > 0
-        ? await db.catalog_localities.where("ID_Frente").anyOf(frontIds).toArray()
-        : [];
-    const localityIds = projectLocalities.map((locality) => locality.ID_Localidad);
+      if (pProj(rec) && pFront(rec) && pLoc(rec) && pStruct(rec) && pGroup(rec) && pAct(rec)) {
+        if (rec.nombre_item) uniqueItems.add(rec.nombre_item);
+      }
 
-    const projectDetails =
-      localityIds.length > 0
-        ? await db.catalog_details.where("ID_Localidad").anyOf(localityIds).toArray()
-        : [];
+      if (pProj(rec) && pItem(rec) && pLoc(rec) && pStruct(rec) && pGroup(rec) && pAct(rec)) {
+        if (rec.nombre_frente) uniqueFronts.set(rec.id_frente || rec.nombre_frente, { id: rec.id_frente ?? null, name: rec.nombre_frente });
+      }
 
-    setFronts(projectFronts.sort((left, right) => sortByLabel(left.Nombre_Frente, right.Nombre_Frente)));
-    setLocalities(
-      projectLocalities.sort((left, right) => sortByLabel(left.Nombre_Localidad, right.Nombre_Localidad))
-    );
-    setDetails(projectDetails.sort((left, right) => sortByLabel(left.Nombre_Detalle, right.Nombre_Detalle)));
-  }, []);
+      if (pProj(rec) && pItem(rec) && pFront(rec) && pStruct(rec) && pGroup(rec) && pAct(rec)) {
+        if (rec.nombre_localidad) uniqueLocalities.set(rec.id_localidad || rec.nombre_localidad, { id: rec.id_localidad ?? null, name: rec.nombre_localidad });
+      }
 
-  const selectedProject = useMemo(
-    () => projects.find((project) => project.ID_Proyectos === selectedProjectId) || null,
-    [projects, selectedProjectId]
-  );
+      if (pProj(rec) && pItem(rec) && pFront(rec) && pLoc(rec) && pGroup(rec) && pAct(rec)) {
+        if (rec.nombre_detalle) uniqueStructures.add(rec.nombre_detalle);
+      }
 
-  const hierarchy = useMemo(
-    () =>
-      buildCatalogHierarchySnapshot({
-        fronts,
-        localities,
-        details,
-        predios,
-        activities,
-        selectedItem,
-        selectedFrontId,
-        selectedLocalityId,
-        selectedSubstation,
-        selectedStructure,
-        selectedGroup,
-        requireSubstationSelection: false,
-      }),
-    [
-      activities,
-      details,
-      fronts,
-      localities,
-      selectedFrontId,
-      selectedGroup,
-      selectedItem,
-      selectedLocalityId,
-      selectedStructure,
-      selectedSubstation,
-    ]
-  );
+      if (pProj(rec) && pItem(rec) && pFront(rec) && pLoc(rec) && pStruct(rec) && pAct(rec)) {
+        if (rec.nombre_grupo) uniqueGroups.add(rec.nombre_grupo);
+      }
 
-  const filteredActivities = hierarchy.filteredActivities;
-  const selectedFront = useMemo(
-    () => fronts.find((front) => front.ID_Frente === selectedFrontId) || null,
-    [fronts, selectedFrontId]
-  );
-  const selectedLocality = useMemo(
-    () => localities.find((locality) => locality.ID_Localidad === selectedLocalityId) || null,
-    [localities, selectedLocalityId]
-  );
-  const selectedActivity = useMemo(
-    () => filteredActivities.find((activity) => activity.ID_Actividad === selectedActivityId) || null,
-    [filteredActivities, selectedActivityId]
-  );
+      if (pProj(rec) && pItem(rec) && pFront(rec) && pLoc(rec) && pStruct(rec) && pGroup(rec)) {
+        if (rec.nombre_actividad) uniqueActivities.set(rec.id_actividad || rec.nombre_actividad, { id: rec.id_actividad ?? null, name: rec.nombre_actividad });
+      }
+    });
 
-  const setSelectedProjectId = useCallback(
-    (projectId: number | null) => {
-      setSelectedProjectIdState(projectId);
-      resetLowerFilters();
-    },
-    [resetLowerFilters]
-  );
+    return {
+      projects: Array.from(uniqueProjects.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name)),
+      items: Array.from(uniqueItems).sort(),
+      fronts: Array.from(uniqueFronts.values()).sort((a, b) => a.name.localeCompare(b.name)),
+      localities: Array.from(uniqueLocalities.values()).sort((a, b) => a.name.localeCompare(b.name)),
+      structures: Array.from(uniqueStructures).sort(),
+      groups: Array.from(uniqueGroups).sort(),
+      activities: Array.from(uniqueActivities.values()).sort((a, b) => a.name.localeCompare(b.name)),
+    };
+  }, [
+    userRecords, rawProjects, 
+    selectedProjectId, selectedItem, selectedFrontId, selectedLocalityId, 
+    selectedStructure, selectedGroup, selectedActivityId
+  ]);
 
-  const setSelectedItem = useCallback((item: string | null) => {
-    setSelectedItemState(item);
-    setSelectedStructureState(null);
-    setSelectedFrontIdState(null);
-    setSelectedLocalityIdState(null);
-    setSelectedSubstationState(null);
-    setSelectedGroupState(null);
-    setSelectedActivityIdState(null);
-    setSelectedRecordId(null);
-  }, []);
+  const selectedProjectName = useMemo(() => 
+    options.projects.find(p => p.id === selectedProjectId)?.name || null
+  , [options.projects, selectedProjectId]);
 
-  const setSelectedStructure = useCallback((structure: string | null) => {
-    setSelectedStructureState(structure);
-    setSelectedFrontIdState(null);
-    setSelectedLocalityIdState(null);
-    setSelectedSubstationState(null);
-    setSelectedGroupState(null);
-    setSelectedActivityIdState(null);
-    setSelectedRecordId(null);
-  }, []);
+  const selectedFrontName = useMemo(() => 
+    options.fronts.find(f => f.id === selectedFrontId)?.name || null
+  , [options.fronts, selectedFrontId]);
 
-  const setSelectedFrontId = useCallback((frontId: number | null) => {
-    setSelectedFrontIdState(frontId);
-    setSelectedLocalityIdState(null);
-    setSelectedSubstationState(null);
-    setSelectedGroupState(null);
-    setSelectedActivityIdState(null);
-    setSelectedRecordId(null);
-  }, []);
+  const selectedLocalityName = useMemo(() => 
+    options.localities.find(l => l.id === selectedLocalityId)?.name || null
+  , [options.localities, selectedLocalityId]);
 
-  const setSelectedLocalityId = useCallback((localityId: number | null) => {
-    setSelectedLocalityIdState(localityId);
-    setSelectedSubstationState(null);
-    setSelectedGroupState(null);
-    setSelectedActivityIdState(null);
-    setSelectedRecordId(null);
-  }, []);
+  const selectedActivityName = useMemo(() => 
+    options.activities.find(a => a.id === selectedActivityId)?.name || null
+  , [options.activities, selectedActivityId]);
 
-  const setSelectedSubstation = useCallback((substation: string | null) => {
-    setSelectedSubstationState(substation);
-    setSelectedGroupState(null);
-    setSelectedActivityIdState(null);
-    setSelectedRecordId(null);
-  }, []);
-
-  const setSelectedGroup = useCallback((group: string | null) => {
-    setSelectedGroupState(group);
-    setSelectedActivityIdState(null);
-    setSelectedRecordId(null);
-  }, []);
-
-  const setSelectedActivityId = useCallback((activityId: number | null) => {
-    setSelectedActivityIdState(activityId);
-    setSelectedRecordId(null);
-  }, []);
-
-  useEffect(() => {
-    if (!selectedProjectId) {
-      setFronts([]);
-      setLocalities([]);
-      setDetails([]);
-      return;
-    }
-    void loadProjectScope(selectedProjectId);
-  }, [loadProjectScope, selectedProjectId]);
-
-  useEffect(() => {
-    if (selectedProjectId && !projects.some((project) => project.ID_Proyectos === selectedProjectId)) {
-      setSelectedProjectIdState(null);
-      clearFilters();
-    }
-  }, [clearFilters, projects, selectedProjectId]);
 
   return {
     selectedProjectId,
@@ -286,31 +170,30 @@ export function useGalleryFlow({
     selectedStructure,
     selectedGroup,
     selectedActivityId,
-    projects,
-    items: hierarchy.items,
-    fronts: hierarchy.filteredFronts,
-    record,
-    localities: hierarchy.filteredLocalities,
-    substations: hierarchy.filteredSubstations,
-    structures: hierarchy.filteredStructures,
-    groups: hierarchy.filteredGroups,
-    activities: filteredActivities,
-    selectedProjectName: selectedProject?.Proyecto_Nombre || null,
-    selectedFrontName: selectedFront?.Nombre_Frente || null,
-    selectedLocalityName: selectedLocality?.Nombre_Localidad || null,
-    selectedActivityName: selectedActivity?.Nombre_Actividad || null,
+    projects: options.projects,
+    items: options.items,
+    fronts: options.fronts,
+    localities: options.localities,
+    structures: options.structures,
+    groups: options.groups,
+    activities: options.activities,
+    
+    selectedProjectName,
+    selectedFrontName,
+    selectedLocalityName,
+    selectedActivityName,
     globalError,
     selectedRecordId,
+    
     setSelectedRecordId,
-    setSelectedProjectId,
-    setSelectedItem,
-    setSelectedFrontId,
-    setSelectedLocalityId,
-    setSelectedSubstation,
-    setSelectedStructure,
-    setSelectedGroup,
-    setSelectedActivityId,
-    setRecords,
+    setSelectedProjectId: setSelectedProjectIdState,
+    setSelectedItem: setSelectedItemState,
+    setSelectedFrontId: setSelectedFrontIdState,
+    setSelectedLocalityId: setSelectedLocalityIdState,
+    setSelectedSubstation: setSelectedSubstationState,
+    setSelectedStructure: setSelectedStructureState,
+    setSelectedGroup: setSelectedGroupState,
+    setSelectedActivityId: setSelectedActivityIdState,
     clearFilters,
   };
 }

@@ -24,7 +24,7 @@ export interface UserRecord {
   nombre_frente?: string | null;
   total_imagenes?: number;
   cantidad: number;
-  ohms?: number | null;
+  ohms?: number | null| string;
   supervisor: number | null;
   especialista: number | null;
   correo: string | null;
@@ -86,6 +86,7 @@ export type RecordImageCountRow = {
 
 export type RecordUpdatePayload = {
   Comentario: string;
+  Ohms: string;
   URL_Archivo?: string;
   Ruta_Archivo?: string;
   Nombre_Archivo?: string;
@@ -109,6 +110,7 @@ export type UpdateRecordWithImageParams = {
   comment: string;
   latitud: number | null;
   longitud: number | null;
+  ohms: string;
   replacementFile?: File | null;
   bucket?: string | null;
   currentImagePath?: string | null;
