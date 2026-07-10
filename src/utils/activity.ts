@@ -76,7 +76,7 @@ export const requiereCoordenadas = (actividad?: {
 
   const actividadesConCoordenadas = [
     "llegada a la localidad",
-    "fotografia de la ejecucion",
+    "fotografia de ejecucion",
     "5. hitos",
     "extraccion de muestra",
     "estacado",
