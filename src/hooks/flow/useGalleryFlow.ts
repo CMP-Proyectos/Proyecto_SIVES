@@ -78,7 +78,6 @@ export function useGalleryFlow({
   }, []);
   
 const options = useMemo(() => {
-    // 1. Definimos funciones auxiliares para saber si un registro CUMPLE con un filtro seleccionado
     const pProj = (rec: UserRecord) => !selectedProjectId || rec.id_proyecto === selectedProjectId;
     const pItem = (rec: UserRecord) => !selectedItem || rec.nombre_item === selectedItem;
     const pFront = (rec: UserRecord) => !selectedFrontId || rec.id_frente === selectedFrontId;

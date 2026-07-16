@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';import 
-{ styles } from '../../../theme/styles';
+import React, { useMemo, useState, useEffect } from 'react';
+import { styles } from '../../../theme/styles';
 import type { UserRecord } from '../../../types/records.types';
 import { useReportFlow } from "../../../hooks/useReportFlow";
 
@@ -75,38 +75,54 @@ export const UserGalleryScreen = ({
   const isSupervisor = flow.sessionUser?.app_metadata?.es_supervisor === true;
   const isEspecialista = flow.sessionUser?.app_metadata?.es_especialista === true;
   const { gallery } = flow;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
   const filteredRecords = useMemo(() => {
     if (!records) return [];
     const normalize = (text: string | null | undefined) => (text || "").trim().toLowerCase();
 
     return records.filter(rec => {
-      const proyectoStr = rec.nombre_proyecto || (rec.bucket ? rec.bucket.replace(/_/g, ' ').toUpperCase() : null);
-      if (gallery.selectedProjectName && normalize(proyectoStr) !== normalize(gallery.selectedProjectName)) return false;
-      
-      if (gallery.selectedItem && normalize(rec.nombre_item) !== normalize(gallery.selectedItem)) return false;
+        const proyectoStr = rec.nombre_proyecto || (rec.bucket ? rec.bucket.replace(/_/g, ' ').toUpperCase() : null);
+        if (gallery.selectedProjectName && normalize(proyectoStr) !== normalize(gallery.selectedProjectName)) return false;
+        
+        if (gallery.selectedItem && normalize(rec.nombre_item) !== normalize(gallery.selectedItem)) return false;
 
-      if (gallery.selectedStructure && normalize(rec.nombre_detalle) !== normalize(gallery.selectedStructure)) return false;
-      
-      if (gallery.selectedFrontName && normalize(rec.nombre_frente) !== normalize(gallery.selectedFrontName)) return false;
-      
-      if (gallery.selectedLocalityName && normalize(rec.nombre_localidad) !== normalize(gallery.selectedLocalityName)) return false;
+        if (gallery.selectedStructure && normalize(rec.nombre_detalle) !== normalize(gallery.selectedStructure)) return false;
+        
+        if (gallery.selectedFrontName && normalize(rec.nombre_frente) !== normalize(gallery.selectedFrontName)) return false;
+        
+        if (gallery.selectedLocalityName && normalize(rec.nombre_localidad) !== normalize(gallery.selectedLocalityName)) return false;
 
-      if (gallery.selectedGroup && normalize(rec.nombre_grupo) !== normalize(gallery.selectedGroup)) return false;
+        if (gallery.selectedGroup && normalize(rec.nombre_grupo) !== normalize(gallery.selectedGroup)) return false;
 
-      if (gallery.selectedActivityName && normalize(rec.nombre_actividad) !== normalize(gallery.selectedActivityName)) return false;
-      
-      return true;
+        if (gallery.selectedActivityName && normalize(rec.nombre_actividad) !== normalize(gallery.selectedActivityName)) return false;
+        
+        return true;
     });
-}, [
-    records, 
-    gallery.selectedProjectName,
-    gallery.selectedItem,
-    gallery.selectedStructure, 
-    gallery.selectedFrontName,
-    gallery.selectedLocalityName,
-    gallery.selectedGroup,
-    gallery.selectedActivityName
-  ]);
+    }, [
+        records, 
+        gallery.selectedProjectName,
+        gallery.selectedItem,
+        gallery.selectedStructure, 
+        gallery.selectedFrontName,
+        gallery.selectedLocalityName,
+        gallery.selectedGroup,
+        gallery.selectedActivityName
+    ]);
+  
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filteredRecords.length, itemsPerPage]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredRecords.length / itemsPerPage));
+    const validCurrentPage = Math.min(currentPage, totalPages);
+
+    const paginatedRecords = useMemo(() => {
+        const start = (validCurrentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        return filteredRecords.slice(start, end);
+    }, [filteredRecords, validCurrentPage, itemsPerPage]);
 
     const projectOptions = gallery.projects.map((project) => ({
         value: String(project.id),
@@ -115,7 +131,7 @@ export const UserGalleryScreen = ({
     const itemOptions = gallery.items.map((item) => ({ value: item, label: item }));
     
     const frontOptions = gallery.fronts.map((front) => ({
-        value: String(front.id || front.name), // Usa el nombre como valor de respaldo si no hay ID
+        value: String(front.id || front.name),
         label: front.name,
     }));
     
@@ -162,8 +178,7 @@ export const UserGalleryScreen = ({
       alert("Hubo un error al actualizar el estado");
     }
   };
-
-  React.useEffect(() => {
+  useEffect(() => {
     console.info("[records] UserGalleryScreen render", {
       isLoading,
       renderedCount: filteredRecords.length,
@@ -451,69 +466,127 @@ export const UserGalleryScreen = ({
                     No se han encontrado registros.
                 </div>
             ) : (
-                <div style={styles.grid}>
-                    {filteredRecords.map(rec => {
-                        const primaryLabel = getPrimaryRecordLabel(rec);
-                        const imageCount = rec.total_imagenes || 0;
+                <>
+                    <div style={styles.grid}>
+                        {paginatedRecords.map(rec => {
+                            const primaryLabel = getPrimaryRecordLabel(rec);
+                            const imageCount = rec.total_imagenes || 0;
 
-                        return (
-                        <div
-                            key={rec.id_registro}
-                            onClick={() => onSelectRecord(rec.id_registro)}
-                            style={{ ...styles.gridItem, ...styles.galleryCard, position: 'relative' }}
-                        >
-                            <div style={styles.galleryThumbWrap}>
-                                {imageCount > 1 && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '10px',
-                                        right: '10px',
-                                        minWidth: '24px',
-                                        height: '24px',
-                                        borderRadius: '999px',
-                                        backgroundColor: 'rgba(15, 23, 42, 0.82)',
-                                        color: '#FFFFFF',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        padding: '0 7px',
-                                        fontSize: '11px',
-                                        fontWeight: '700',
-                                        zIndex: 1
-                                    }}>
-                                        {imageCount}
-                                    </div>
-                                )}
-                                {rec.url_foto ? (
-                                    <img src={rec.url_foto} style={styles.galleryThumbImage} loading="lazy" alt="thumb" />
-                                ) : (
-                                    <span style={{fontSize:'24px', opacity:0.3}}>IMG</span>
-                                )}
-                            </div>
-                            <div style={{ ...styles.galleryTextWrap, flexDirection: 'column', gap: '4px', alignItems: 'flex-start', justifyContent: 'center' }}>
-                                <span style={{ ...styles.galleryText, textAlign: 'left', WebkitLineClamp: 2 }}>
-                                    {primaryLabel}
-                                </span>
-                                {rec.nombre_actividad && (
-                                    <span style={{
-                                        fontSize: '10px',
-                                        color: '#64748B',
-                                        lineHeight: '1.35',
-                                        textAlign: 'left',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: 'vertical',
-                                        overflow: 'hidden',
-                                        width: '100%'
-                                    }}>
-                                        {rec.nombre_actividad}
+                            return (
+                            <div
+                                key={rec.id_registro}
+                                onClick={() => onSelectRecord(rec.id_registro)}
+                                style={{ ...styles.gridItem, ...styles.galleryCard, position: 'relative' }}
+                            >
+                                <div style={styles.galleryThumbWrap}>
+                                    {imageCount > 1 && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '10px',
+                                            right: '10px',
+                                            minWidth: '24px',
+                                            height: '24px',
+                                            borderRadius: '999px',
+                                            backgroundColor: 'rgba(15, 23, 42, 0.82)',
+                                            color: '#FFFFFF',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '0 7px',
+                                            fontSize: '11px',
+                                            fontWeight: '700',
+                                            zIndex: 1
+                                        }}>
+                                            {imageCount}
+                                        </div>
+                                    )}
+                                    {rec.url_foto ? (
+                                        <img src={rec.url_foto} style={styles.galleryThumbImage} loading="lazy" alt="thumb" />
+                                    ) : (
+                                        <span style={{fontSize:'24px', opacity:0.3}}>IMG</span>
+                                    )}
+                                </div>
+                                <div style={{ ...styles.galleryTextWrap, flexDirection: 'column', gap: '4px', alignItems: 'flex-start', justifyContent: 'center' }}>
+                                    <span style={{ ...styles.galleryText, textAlign: 'left', WebkitLineClamp: 2 }}>
+                                        {primaryLabel}
                                     </span>
-                                )}
+                                    {rec.nombre_actividad && (
+                                        <span style={{
+                                            fontSize: '10px',
+                                            color: '#64748B',
+                                            lineHeight: '1.35',
+                                            textAlign: 'left',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            width: '100%'
+                                        }}>
+                                            {rec.nombre_actividad}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            );
+                        })}
+                    </div>
+                    {filteredRecords.length > 0 && (
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center', 
+                            marginTop: '24px',
+                            paddingTop: '16px',
+                            borderTop: '1px solid #E2E8F0',
+                            flexWrap: 'wrap',
+                            gap: '12px'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <label style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Mostrar:</label>
+                                <select 
+                                    value={itemsPerPage} 
+                                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                                    style={{
+                                        padding: '4px 8px',
+                                        borderRadius: '6px',
+                                        border: '1px solid #CBD5E1',
+                                        fontSize: '12px',
+                                        color: '#334155',
+                                        backgroundColor: '#FFFFFF',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <option value={20}>20</option>
+                                    <option value={50}>50</option>
+                                    <option value={100}>100</option>
+                                    <option value={filteredRecords.length}>Todos</option>
+                                </select>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>
+                                    Página {validCurrentPage} de {totalPages}
+                                </span>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button 
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={validCurrentPage === 1}
+                                        style={{ ...styles.btnSecondary, margin: 0, width: '100%', height: '38px', fontSize: '12px' }}
+                                    >
+                                        Anterior
+                                    </button>
+                                    <button 
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={validCurrentPage === totalPages}
+                                        style={{ ...styles.btnSecondary, margin: 0, width: '100%', height: '38px', fontSize: '12px' }}
+                                    >
+                                        Siguiente
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        );
-                    })}
-                </div>
+                    )}
+                </>
             )}
         </div>
     </div>

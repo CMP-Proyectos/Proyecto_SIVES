@@ -574,7 +574,6 @@ export function useReportFlow() {
         return;
       }
 
-      // 3. Subir directamente a Supabase
       const saveResult = await saveReportOnline({
         bucket: MASTER_BUCKET,
         detailId: selectedDetail.ID_DetallesActividad,

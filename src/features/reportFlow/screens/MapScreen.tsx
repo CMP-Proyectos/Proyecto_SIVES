@@ -151,12 +151,12 @@ export const MapScreen = ({ isOnline, map }: Props) => {
   }));
   const itemOptions = map.items.map((item) => ({ value: item, label: item }));
   const frontOptions = map.fronts.map((front) => ({
-    value: String(front.ID_Frente),
-    label: front.Nombre_Frente,
+    value: String(front.id || front.name), 
+    label: front.name,
   }));
   const localityOptions = map.localities.map((locality) => ({
-    value: String(locality.ID_Localidad),
-    label: locality.Nombre_Localidad,
+    value: String(locality.id || locality.name),
+    label: locality.name,
   }));
   const substationOptions = map.substations.map((substation) => ({
     value: substation,
@@ -168,8 +168,8 @@ export const MapScreen = ({ isOnline, map }: Props) => {
   }));
   const groupOptions = map.groups.map((group) => ({ value: group, label: group }));
   const activityOptions = map.activities.map((activity) => ({
-    value: String(activity.ID_Actividad),
-    label: activity.Nombre_Actividad,
+    value: String(activity.id || activity.name),
+    label: activity.name,
   }));
   const selectedRecordIsPat = isCuadroTexto({
     Grupo: map.selectedRecord?.nombre_grupo,
@@ -270,7 +270,6 @@ export const MapScreen = ({ isOnline, map }: Props) => {
             options={itemOptions}
             onChange={(value) => map.setSelectedItem(value || null)}
             placeholder="Todas las secciones"
-            disabled={!map.selectedProjectId}
           />
 
           <FilterSelect
@@ -279,7 +278,6 @@ export const MapScreen = ({ isOnline, map }: Props) => {
             options={structureOptions}
             onChange={(value) => map.setSelectedStructure(value || null)}
             placeholder="Todas las estructuras"
-            disabled={!map.selectedItem}
           />
 
           <FilterSelect
@@ -288,7 +286,6 @@ export const MapScreen = ({ isOnline, map }: Props) => {
             options={frontOptions}
             onChange={(value) => map.setSelectedFrontId(value ? Number(value) : null)}
             placeholder="Todos los frentes"
-            disabled={!map.selectedProjectId || !map.selectedItem}
           />
 
           <FilterSelect
@@ -297,7 +294,6 @@ export const MapScreen = ({ isOnline, map }: Props) => {
             options={localityOptions}
             onChange={(value) => map.setSelectedLocalityId(value ? Number(value) : null)}
             placeholder="Todas las localidades"
-            disabled={!map.selectedFrontId}
           />
 
           {/*
@@ -319,7 +315,6 @@ export const MapScreen = ({ isOnline, map }: Props) => {
             options={groupOptions}
             onChange={(value) => map.setSelectedGroup(value || null)}
             placeholder="Todos los grupos"
-            disabled={!map.selectedStructure}
           />
 
           <FilterSelect
@@ -328,7 +323,6 @@ export const MapScreen = ({ isOnline, map }: Props) => {
             options={activityOptions}
             onChange={(value) => map.setSelectedActivityId(value ? Number(value) : null)}
             placeholder="Todas las actividades"
-            disabled={!map.selectedGroup}
           />
         </div>
 
