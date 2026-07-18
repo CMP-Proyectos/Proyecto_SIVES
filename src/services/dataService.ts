@@ -438,72 +438,98 @@ export const createRegistroImagenes = async (payload: RegistroImagenPayload[]) =
   return { data, error };
 };
 
-export const fetchUserRecords = async (userId: string, isEspecialista: boolean|undefined, isSupervisor: boolean|undefined): Promise<UserRecord[]> => {
+export const fetchUserRecords = async (userId: string, isEspecialista: boolean|undefined, isSupervisor: boolean|undefined): Promise<UserRecord[]> => {  
   if (!userId) return [];
 
-  let query = supabase
-    .from("Registros")
-    .select("ID_Registros, Fecha_Subida, URL_Archivo, Comentario, Ruta_Archivo, Bucket, ID_Verificada, user_id, id_proyecto, Ohms, Especialista, Supervisor");
-
   const isPrivileged = isEspecialista || isSupervisor;
+  
+  let allRegistros: RegistroRow[] = [];
+  let from = 0;
+  const step = 1000;
+  let moreData = true;
 
-  if (!isPrivileged) {
-    query = query.eq("user_id", userId);
+  while (moreData) {
+    let query = supabase
+      .from("Registros")
+      .select("ID_Registros, Fecha_Subida, URL_Archivo, Comentario, Ruta_Archivo, Bucket, ID_Verificada, user_id, id_proyecto, Ohms, Especialista, Supervisor");
+
+    if (!isPrivileged) {
+      query = query.eq("user_id", userId);
+    }
+
+    const { data, error } = await query
+      .order("Fecha_Subida", { ascending: false })
+      .range(from, from + step - 1);
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      allRegistros = [...allRegistros, ...(data as RegistroRow[])];
+      from += step;
+      moreData = data.length === step;
+    } else {
+      moreData = false;
+    }
   }
 
-  const { data: registros, error: registrosError } = await query
-    .order("Fecha_Subida", { ascending: false });
+  if (allRegistros.length === 0) return [];
 
-  if (registrosError) throw registrosError;
-
-  const registroRows = (registros || []) as RegistroRow[];
-  if (registroRows.length === 0) return [];
-
-  const verificadaIds = registroRows
+  const verificadaIds = allRegistros
     .map((record) => record.ID_Verificada)
     .filter((value): value is number => typeof value === "number");
 
   const checkedById = new Map<number, CheckedActivityRow>();
+  
   if (verificadaIds.length > 0) {
-    const { data: checkedRows, error: checkedError } = await supabase
-      .from("Actividad_Verificada")
-      .select("ID_Verificada, ID_DetallesActividad, Latitud, Longitud, Cantidad")
-      .in("ID_Verificada", verificadaIds);
+    const idChunks = chunkArray(verificadaIds, 1000);
+    
+    for (const chunk of idChunks) {
+      const { data: checkedRows, error: checkedError } = await supabase
+        .from("Actividad_Verificada")
+        .select("ID_Verificada, ID_DetallesActividad, Latitud, Longitud, Cantidad")
+        .in("ID_Verificada", chunk);
 
-    if (checkedError) throw checkedError;
+      if (checkedError) throw checkedError;
 
-    for (const row of (checkedRows || []) as CheckedActivityRow[]) {
-      checkedById.set(row.ID_Verificada, row);
+      for (const row of (checkedRows || []) as CheckedActivityRow[]) {
+        checkedById.set(row.ID_Verificada, row);
+      }
     }
   }
 
-  const recordIds = registroRows.map((record) => record.ID_Registros);
+  const recordIds = allRegistros.map((record) => record.ID_Registros);
   const imageCountByRecordId = new Map<number, number>();
   const correoByRecordId = new Map<number, string>();
+  
   if (recordIds.length > 0) {
-    const { data: imageRows, error: imageError } = await supabase
-      .from("Registro_Imagenes")
-      .select("ID_Registro")
-      .in("ID_Registro", recordIds);
+    const recordIdChunks = chunkArray(recordIds, 1000);
 
-    if (imageError) throw imageError;
+    for (const chunk of recordIdChunks) {
+      const { data: imageRows, error: imageError } = await supabase
+        .from("Registro_Imagenes")
+        .select("ID_Registro")
+        .in("ID_Registro", chunk);
 
-    for (const row of (imageRows || []) as RecordImageCountRow[]) {
-      const recordId = row.ID_Registro;
-      if (!recordId) continue;
-      imageCountByRecordId.set(recordId, (imageCountByRecordId.get(recordId) || 0) + 1);
-    }
+      if (imageError) throw imageError;
 
-    const { data: correoRows, error: correoError } = await supabase
-      .from("vista_registros_drive")
-      .select("ID_Registros, Correo")
-      .in("ID_Registros", recordIds);
+      for (const row of (imageRows || []) as RecordImageCountRow[]) {
+        const recordId = row.ID_Registro;
+        if (!recordId) continue;
+        imageCountByRecordId.set(recordId, (imageCountByRecordId.get(recordId) || 0) + 1);
+      }
 
-    if (correoError) throw correoError;
+      // Correos (Drive)
+      const { data: correoRows, error: correoError } = await supabase
+        .from("vista_registros_drive")
+        .select("ID_Registros, Correo")
+        .in("ID_Registros", chunk);
 
-    for (const row of (correoRows || [])) {
-      if (row.ID_Registros && row.Correo) {
-        correoByRecordId.set(row.ID_Registros, row.Correo);
+      if (correoError) throw correoError;
+
+      for (const row of (correoRows || [])) {
+        if (row.ID_Registros && row.Correo) {
+          correoByRecordId.set(row.ID_Registros, row.Correo);
+        }
       }
     }
   }
@@ -522,7 +548,7 @@ export const fetchUserRecords = async (userId: string, isEspecialista: boolean|u
   const projectById = new Map(projects.map((project) => [project.ID_Proyectos, project]));
   const activityById = new Map(activities.map((activity) => [activity.ID_Actividad, activity]));
 
-  const mappedRecords = registroRows.map((record) => {
+  const mappedRecords = allRegistros.map((record) => {
     const checked = record.ID_Verificada ? checkedById.get(record.ID_Verificada) : undefined;
     const detail = checked?.ID_DetallesActividad ? detailById.get(checked.ID_DetallesActividad) : undefined;
     const locality = detail ? localityById.get(detail.ID_Localidad) : undefined;
@@ -565,7 +591,7 @@ export const fetchUserRecords = async (userId: string, isEspecialista: boolean|u
 
   console.info("[records] fetchUserRecords", {
     userId,
-    registrosCount: registroRows.length,
+    registrosCount: allRegistros.length,
     mappedCount: mappedRecords.length,
   });
 
@@ -685,18 +711,39 @@ const normalizeGlobalMapRow = (row: GlobalMapRpcRow): MapRecord | null => {
 };
 
 export const fetchGlobalMapRecords = async (projectId: number): Promise<MapRecord[]> => {
-  const { data, error } = await supabase.rpc("get_mapa_global", {
-    p_id_proyecto: projectId,
-  });
+  let allData: any[] = [];
+  let from = 0;
+  const step = 1000;
+  let moreData = true;
 
-  if (error) throw error;
-  if (!Array.isArray(data)) return [];
+  while (moreData) {
+    const { data, error } = await supabase
+      .rpc("get_mapa_global", {
+        p_id_proyecto: projectId,
+      })
+      .range(from, from + step - 1);
 
-  const normalizedRecords = data
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      allData = [...allData, ...data];
+      from += step;
+
+      moreData = data.length === step;
+    } else {
+      moreData = false;
+    }
+  }
+
+  console.log(`Descarga completa del mapa (RPC): ${allData.length} registros.`);
+
+  if (!Array.isArray(allData) || allData.length === 0) return [];
+
+  const normalizedRecords = allData
     .map((row) => normalizeGlobalMapRow((row || {}) as GlobalMapRpcRow))
     .filter((record): record is MapRecord => Boolean(record));
 
-  if (data.length > 0 && normalizedRecords.length === 0) {
+  if (allData.length > 0 && normalizedRecords.length === 0) {
     throw new Error(MAP_REQUIRED_FIELDS_ERROR);
   }
 
