@@ -61,7 +61,6 @@ export function useReportFlow() {
     isOnline,
     sessionUserId: sessionUser?.id,
     projects: catalog.projects,
-    activities: catalog.activities,
     userRecords: records.userRecords,
     isLoadingUserRecords: records.isLoadingRecords,
     loadUserRecords,

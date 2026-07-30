@@ -277,7 +277,7 @@ export const MapScreen = ({ isOnline, map }: Props) => {
             value={map.selectedStructure || ""}
             options={structureOptions}
             onChange={(value) => map.setSelectedStructure(value || null)}
-            placeholder="Todas las estructuras"
+            placeholder="Todas las especialidades"
           />
 
           <FilterSelect
