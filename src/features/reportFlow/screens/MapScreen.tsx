@@ -273,7 +273,7 @@ export const MapScreen = ({ isOnline, map }: Props) => {
           />
 
           <FilterSelect
-            label="Estructura"
+            label="Especialidad"
             value={map.selectedStructure || ""}
             options={structureOptions}
             onChange={(value) => map.setSelectedStructure(value || null)}
