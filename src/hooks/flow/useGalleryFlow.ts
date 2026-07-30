@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
 import type { ActivityRecord, ProjectRecord } from "../../services/dataService";
 import type { UserRecord } from "../../types/records.types";
-import { sortByLabel } from "./catalogHierarchy"; // Puedes mantener sortByLabel si lo necesitas o quitarlo
+
 
 type ToastType = "success" | "error" | "info";
 
 type UseGalleryFlowParams = {
   projects: ProjectRecord[];
-  activities: ActivityRecord[]; // Ya no los usamos para las opciones, pero si los necesitas para otra cosa los dejas
+  activities: ActivityRecord[];
   userRecords: UserRecord[];
   loadUserRecords: () => Promise<void>;
   showToast: (msg: string, type: ToastType) => void;

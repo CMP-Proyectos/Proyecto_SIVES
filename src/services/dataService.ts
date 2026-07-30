@@ -438,10 +438,10 @@ export const createRegistroImagenes = async (payload: RegistroImagenPayload[]) =
   return { data, error };
 };
 
-export const fetchUserRecords = async (userId: string, isEspecialista: boolean|undefined, isSupervisor: boolean|undefined): Promise<UserRecord[]> => {  
+export const fetchUserRecords = async (userId: string, isEspecialista: boolean|undefined, isSupervisor: boolean|undefined, isVisualizador: boolean|undefined): Promise<UserRecord[]> => {  
   if (!userId) return [];
 
-  const isPrivileged = isEspecialista || isSupervisor;
+  const isPrivileged = isEspecialista || isSupervisor || isVisualizador;
   
   let allRegistros: RegistroRow[] = [];
   let from = 0;

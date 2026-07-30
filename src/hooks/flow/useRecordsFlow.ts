@@ -15,7 +15,8 @@ export function useRecordsFlow(
     setIsLoading: (v: boolean) => void,
     MASTER_BUCKET: string,
     esEspecialista: boolean | undefined,
-    esSupervisor: boolean | undefined
+    esSupervisor: boolean | undefined,
+    esVisualizador: boolean | undefined
 ) {
   const [userRecords, setUserRecords] = useState<UserRecord[]>([]);
   const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null);
@@ -43,7 +44,7 @@ export function useRecordsFlow(
 
     setIsLoadingRecords(true);
     try {
-      const data = await fetchUserRecords(sessionUserId, esEspecialista, esSupervisor);
+      const data = await fetchUserRecords(sessionUserId, esEspecialista, esSupervisor, esVisualizador);
       setUserRecords(data);
       setHasLoadedUserRecords(true);
     } catch (err) {

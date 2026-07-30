@@ -74,6 +74,7 @@ export const UserGalleryScreen = ({
   const flow = useReportFlow();
   const isSupervisor = flow.sessionUser?.app_metadata?.es_supervisor === true;
   const isEspecialista = flow.sessionUser?.app_metadata?.es_especialista === true;
+  const isVisualizador = flow.sessionUser?.app_metadata?.es_visualizador === true;
   const { gallery } = flow;
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);

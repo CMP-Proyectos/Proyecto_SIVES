@@ -14,6 +14,7 @@ export type SessionUser = {
   app_metadata?: {
     es_supervisor?: boolean;
     es_especialista?: boolean;
+    es_visualizador?: boolean;
     [key: string]: any;
   };
 };

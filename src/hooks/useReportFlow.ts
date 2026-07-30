@@ -48,7 +48,7 @@ export function useReportFlow() {
   const recovery = usePasswordRecoveryFlow(showToast);
   const catalog = useCatalogFlow(session.isOnline);
   const evidence = useEvidenceFlow(showToast, catalog.selectedActivity, session.isOnline);
-  const records = useRecordsFlow(session.sessionUser?.id, showToast, setConfirmModal, session.setIsLoading, MASTER_BUCKET, session.sessionUser?.app_metadata?.es_especialista, session.sessionUser?.app_metadata?.es_supervisor);
+  const records = useRecordsFlow(session.sessionUser?.id, showToast, setConfirmModal, session.setIsLoading, MASTER_BUCKET, session.sessionUser?.app_metadata?.es_especialista, session.sessionUser?.app_metadata?.es_supervisor, session.sessionUser?.app_metadata?.es_visualizador);
   const { isOnline, sessionUser, hasResolvedInitialSession } = session;
   const { loadProfileData } = session;
   const { loadUserRecords } = records;
