@@ -55,7 +55,8 @@ export const isIngresoPorArchivo = (actividad?: {
     "acta",
     "padron",
     "autoridad",
-    "calculos"
+    "calculos",
+    "curva"
   ];
 
   return palabrasClaveArchivo.some((palabra) => nombre.includes(palabra));
@@ -110,10 +111,15 @@ export const requiereCoordenadas = (actividad?: {
   const actividadesConCoordenadas = [
     "llegada a la localidad",
     "fotografia de ejecucion",
-    "5. hitos",
+    "hitos",
     "extraccion de muestra",
     "estacado",
-    "registro de"
+    "registro de",
+    "seccionamiento",
+    "puntos de",
+    "inventario",
+    "subestacion",
+    "gps"
   ];
   return actividadesConCoordenadas.some((palabra) => nombre.includes(palabra));
 };
