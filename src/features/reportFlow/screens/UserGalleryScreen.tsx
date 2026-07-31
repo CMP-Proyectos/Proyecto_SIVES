@@ -374,222 +374,236 @@ export const UserGalleryScreen = ({
   };
 
   return (
-    <div style={styles.card}>
-        <div style={{ ...styles.flexBetween, marginBottom: '16px' }}>
-            <h2 style={styles.heading}>Mis Registros</h2>
-            <span style={{fontSize:'12px', color:'#64748B', fontWeight:'600'}}>
-                {filteredRecords?.length || 0} ITEMS 
-            </span>
-        </div>
-
-        <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-            gap: "12px",
-            marginBottom: "16px",
-            padding: "16px",
-            backgroundColor: "#F8FAFC",
-            borderRadius: "12px",
-            border: "1px solid #E2E8F0"
+    // CAMBIO PRINCIPAL: Agregamos el layout de scroll flexible como en el resto de la app
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingBottom: '24px' }}>
+        
+        {/* Modificamos la tarjeta para que se expanda sin límites y deje ver todo */}
+        <div style={{ 
+            ...styles.card, 
+            maxHeight: 'none', 
+            minHeight: 'min-content', 
+            overflow: 'visible' 
         }}>
-            <FilterSelect
-                label="Proyecto"
-                value={gallery.selectedProjectId ? String(gallery.selectedProjectId) : ""}
-                options={projectOptions}
-                onChange={(value) => gallery.setSelectedProjectId(value ? Number(value) : null)}
-                placeholder="Todos los proyectos"
-            />
-            <FilterSelect
-                label="Sección"
-                value={gallery.selectedItem || ""}
-                options={itemOptions}
-                onChange={(value) => gallery.setSelectedItem(value || null)}
-                placeholder="Todas las secciones"
-            />
-            <FilterSelect
-                label="Especialidad"
-                value={gallery.selectedStructure || ""}
-                options={structureOptions}
-                onChange={(value) => gallery.setSelectedStructure(value || null)}
-                placeholder="Todas las especialidades"
-            />
+            <div style={{ ...styles.flexBetween, marginBottom: '16px' }}>
+                <h2 style={styles.heading}>Mis Registros</h2>
+                <span style={{fontSize:'12px', color:'#64748B', fontWeight:'600'}}>
+                    {filteredRecords?.length || 0} ITEMS 
+                </span>
+            </div>
 
-            <FilterSelect
-                label="Frente"
-                value={gallery.selectedFrontId ? String(gallery.selectedFrontId) : ""}
-                options={frontOptions}
-                onChange={(value) => gallery.setSelectedFrontId(value ? Number(value) : null)}
-                placeholder="Todos los frentes"
-            />
+            <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                gap: "12px",
+                marginBottom: "16px",
+                padding: "16px",
+                backgroundColor: "#F8FAFC",
+                borderRadius: "12px",
+                border: "1px solid #E2E8F0"
+            }}>
+                <FilterSelect
+                    label="Proyecto"
+                    value={gallery.selectedProjectId ? String(gallery.selectedProjectId) : ""}
+                    options={projectOptions}
+                    onChange={(value) => gallery.setSelectedProjectId(value ? Number(value) : null)}
+                    placeholder="Todos los proyectos"
+                />
+                <FilterSelect
+                    label="Sección"
+                    value={gallery.selectedItem || ""}
+                    options={itemOptions}
+                    onChange={(value) => gallery.setSelectedItem(value || null)}
+                    placeholder="Todas las secciones"
+                />
+                <FilterSelect
+                    label="Especialidad"
+                    value={gallery.selectedStructure || ""}
+                    options={structureOptions}
+                    onChange={(value) => gallery.setSelectedStructure(value || null)}
+                    placeholder="Todas las especialidades"
+                />
 
-            <FilterSelect
-                label="Localidad"
-                value={gallery.selectedLocalityId ? String(gallery.selectedLocalityId) : ""}
-                options={localityOptions}
-                onChange={(value) => gallery.setSelectedLocalityId(value ? Number(value) : null)}
-                placeholder="Todas las localidades"
-            />
+                <FilterSelect
+                    label="Frente"
+                    value={gallery.selectedFrontId ? String(gallery.selectedFrontId) : ""}
+                    options={frontOptions}
+                    onChange={(value) => gallery.setSelectedFrontId(value ? Number(value) : null)}
+                    placeholder="Todos los frentes"
+                />
 
-            <FilterSelect
-                label="Grupo"
-                value={gallery.selectedGroup || ""}
-                options={groupOptions}
-                onChange={(value) => gallery.setSelectedGroup(value || null)}
-                placeholder="Todos los grupos"
-            />
+                <FilterSelect
+                    label="Localidad"
+                    value={gallery.selectedLocalityId ? String(gallery.selectedLocalityId) : ""}
+                    options={localityOptions}
+                    onChange={(value) => gallery.setSelectedLocalityId(value ? Number(value) : null)}
+                    placeholder="Todas las localidades"
+                />
 
-            <FilterSelect
-                label="Actividad"
-                value={gallery.selectedActivityId ? String(gallery.selectedActivityId) : ""}
-                options={activityOptions}
-                onChange={(value) => gallery.setSelectedActivityId(value ? Number(value) : null)}
-                placeholder="Todas las actividades"
-            />
+                <FilterSelect
+                    label="Grupo"
+                    value={gallery.selectedGroup || ""}
+                    options={groupOptions}
+                    onChange={(value) => gallery.setSelectedGroup(value || null)}
+                    placeholder="Todos los grupos"
+                />
 
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                <button 
-                    type="button" 
-                    onClick={gallery.clearFilters} 
-                    style={{ ...styles.btnSecondary, margin: 0, width: '100%', height: '38px', fontSize: '12px' }}
-                >
-                    Limpiar filtros
-                </button>
+                <FilterSelect
+                    label="Actividad"
+                    value={gallery.selectedActivityId ? String(gallery.selectedActivityId) : ""}
+                    options={activityOptions}
+                    onChange={(value) => gallery.setSelectedActivityId(value ? Number(value) : null)}
+                    placeholder="Todas las actividades"
+                />
+
+                <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                    <button 
+                        type="button" 
+                        onClick={gallery.clearFilters} 
+                        style={{ ...styles.btnSecondary, margin: 0, width: '100%', height: '38px', fontSize: '12px' }}
+                    >
+                        Limpiar filtros
+                    </button>
+                </div>
+            </div>
+
+            {selectedRecordId && renderDetail()}
+
+            {/* CAMBIO SECUNDARIO: En lugar de usar styles.scrollableY que atrapa el contenido, 
+                simplemente usamos un div flex para que crezca libremente */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {isLoading ? (
+                    <div style={{padding:'40px', textAlign:'center', color:'#64748B'}}>Cargando galería...</div>
+                ) : records?.length === 0 ? (
+                    <div style={{padding:'40px', textAlign:'center', color:'#64748B', fontStyle:'italic'}}>
+                        No se han encontrado registros.
+                    </div>
+                ) : (
+                    <>
+                        <div style={styles.grid}>
+                            {paginatedRecords.map(rec => {
+                                const primaryLabel = getPrimaryRecordLabel(rec);
+                                const imageCount = rec.total_imagenes || 0;
+
+                                return (
+                                <div
+                                    key={rec.id_registro}
+                                    onClick={() => onSelectRecord(rec.id_registro)}
+                                    style={{ ...styles.gridItem, ...styles.galleryCard, position: 'relative' }}
+                                >
+                                    <div style={styles.galleryThumbWrap}>
+                                        {imageCount > 1 && (
+                                            <div style={{
+                                                position: 'absolute',
+                                                top: '10px',
+                                                right: '10px',
+                                                minWidth: '24px',
+                                                height: '24px',
+                                                borderRadius: '999px',
+                                                backgroundColor: 'rgba(15, 23, 42, 0.82)',
+                                                color: '#FFFFFF',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                padding: '0 7px',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                zIndex: 1
+                                            }}>
+                                                {imageCount}
+                                            </div>
+                                        )}
+                                        {rec.url_foto ? (
+                                            <img src={rec.url_foto} style={styles.galleryThumbImage} loading="lazy" alt="thumb" />
+                                        ) : (
+                                            <span style={{fontSize:'24px', opacity:0.3}}>IMG</span>
+                                        )}
+                                    </div>
+                                    <div style={{ ...styles.galleryTextWrap, flexDirection: 'column', gap: '4px', alignItems: 'flex-start', justifyContent: 'center' }}>
+                                        <span style={{ ...styles.galleryText, textAlign: 'left', WebkitLineClamp: 2 }}>
+                                            {primaryLabel}
+                                        </span>
+                                        {rec.nombre_actividad && (
+                                            <span style={{
+                                                fontSize: '10px',
+                                                color: '#64748B',
+                                                lineHeight: '1.35',
+                                                textAlign: 'left',
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: 'vertical',
+                                                overflow: 'hidden',
+                                                width: '100%'
+                                            }}>
+                                                {rec.nombre_actividad}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                );
+                            })}
+                        </div>
+                        {filteredRecords.length > 0 && (
+                            <div style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
+                                alignItems: 'center', 
+                                marginTop: '24px',
+                                paddingTop: '16px',
+                                borderTop: '1px solid #E2E8F0',
+                                flexWrap: 'wrap',
+                                gap: '12px'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <label style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Mostrar:</label>
+                                    <select 
+                                        value={itemsPerPage} 
+                                        onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                                        style={{
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            border: '1px solid #CBD5E1',
+                                            fontSize: '12px',
+                                            color: '#334155',
+                                            backgroundColor: '#FFFFFF',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <option value={20}>20</option>
+                                        <option value={50}>50</option>
+                                        <option value={100}>100</option>
+                                        <option value={filteredRecords.length}>Todos</option>
+                                    </select>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>
+                                        Página {validCurrentPage} de {totalPages}
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button 
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                            disabled={validCurrentPage === 1}
+                                            style={{ ...styles.btnSecondary, margin: 0, width: '100%', height: '38px', fontSize: '12px' }}
+                                        >
+                                            Anterior
+                                        </button>
+                                        <button 
+                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                            disabled={validCurrentPage === totalPages}
+                                            style={{ ...styles.btnSecondary, margin: 0, width: '100%', height: '38px', fontSize: '12px' }}
+                                        >
+                                            Siguiente
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </div>
-
-        {selectedRecordId && renderDetail()}
-
-        <div style={styles.scrollableY}>
-            {isLoading ? (
-                <div style={{padding:'40px', textAlign:'center', color:'#64748B'}}>Cargando galería...</div>
-            ) : records?.length === 0 ? (
-                <div style={{padding:'40px', textAlign:'center', color:'#64748B', fontStyle:'italic'}}>
-                    No se han encontrado registros.
-                </div>
-            ) : (
-                <>
-                    <div style={styles.grid}>
-                        {paginatedRecords.map(rec => {
-                            const primaryLabel = getPrimaryRecordLabel(rec);
-                            const imageCount = rec.total_imagenes || 0;
-
-                            return (
-                            <div
-                                key={rec.id_registro}
-                                onClick={() => onSelectRecord(rec.id_registro)}
-                                style={{ ...styles.gridItem, ...styles.galleryCard, position: 'relative' }}
-                            >
-                                <div style={styles.galleryThumbWrap}>
-                                    {imageCount > 1 && (
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: '10px',
-                                            right: '10px',
-                                            minWidth: '24px',
-                                            height: '24px',
-                                            borderRadius: '999px',
-                                            backgroundColor: 'rgba(15, 23, 42, 0.82)',
-                                            color: '#FFFFFF',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            padding: '0 7px',
-                                            fontSize: '11px',
-                                            fontWeight: '700',
-                                            zIndex: 1
-                                        }}>
-                                            {imageCount}
-                                        </div>
-                                    )}
-                                    {rec.url_foto ? (
-                                        <img src={rec.url_foto} style={styles.galleryThumbImage} loading="lazy" alt="thumb" />
-                                    ) : (
-                                        <span style={{fontSize:'24px', opacity:0.3}}>IMG</span>
-                                    )}
-                                </div>
-                                <div style={{ ...styles.galleryTextWrap, flexDirection: 'column', gap: '4px', alignItems: 'flex-start', justifyContent: 'center' }}>
-                                    <span style={{ ...styles.galleryText, textAlign: 'left', WebkitLineClamp: 2 }}>
-                                        {primaryLabel}
-                                    </span>
-                                    {rec.nombre_actividad && (
-                                        <span style={{
-                                            fontSize: '10px',
-                                            color: '#64748B',
-                                            lineHeight: '1.35',
-                                            textAlign: 'left',
-                                            display: '-webkit-box',
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: 'vertical',
-                                            overflow: 'hidden',
-                                            width: '100%'
-                                        }}>
-                                            {rec.nombre_actividad}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                            );
-                        })}
-                    </div>
-                    {filteredRecords.length > 0 && (
-                        <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
-                            alignItems: 'center', 
-                            marginTop: '24px',
-                            paddingTop: '16px',
-                            borderTop: '1px solid #E2E8F0',
-                            flexWrap: 'wrap',
-                            gap: '12px'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <label style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Mostrar:</label>
-                                <select 
-                                    value={itemsPerPage} 
-                                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                                    style={{
-                                        padding: '4px 8px',
-                                        borderRadius: '6px',
-                                        border: '1px solid #CBD5E1',
-                                        fontSize: '12px',
-                                        color: '#334155',
-                                        backgroundColor: '#FFFFFF',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    <option value={20}>20</option>
-                                    <option value={50}>50</option>
-                                    <option value={100}>100</option>
-                                    <option value={filteredRecords.length}>Todos</option>
-                                </select>
-                            </div>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>
-                                    Página {validCurrentPage} de {totalPages}
-                                </span>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button 
-                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                        disabled={validCurrentPage === 1}
-                                        style={{ ...styles.btnSecondary, margin: 0, width: '100%', height: '38px', fontSize: '12px' }}
-                                    >
-                                        Anterior
-                                    </button>
-                                    <button 
-                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                        disabled={validCurrentPage === totalPages}
-                                        style={{ ...styles.btnSecondary, margin: 0, width: '100%', height: '38px', fontSize: '12px' }}
-                                    >
-                                        Siguiente
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </>
-            )}
-        </div>
+      </div>
     </div>
   );
 };

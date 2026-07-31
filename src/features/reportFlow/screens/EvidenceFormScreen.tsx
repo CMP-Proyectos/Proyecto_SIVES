@@ -37,7 +37,7 @@ interface Props {
   isReinicio: boolean;
   registroData?: RegistroUsuariosData;
   setRegistroData?: (data: RegistroUsuariosData) => void;
-  onSave: (regresar: boolean) => void;
+  onSave: (regresar: boolean) => Promise<void>;
   previousRecord?: any;
 }
 
@@ -67,6 +67,24 @@ export const EvidenceFormScreen = ({
     const updated = { ...activeRegistro, [key]: value };
     if (setRegistroData) setRegistroData(updated);
     else setLocalRegistro(updated);
+  };
+
+  const handleSaveAndContinue = async () => {
+    await onSave(false);
+    
+    setNote('');
+    setOhms('');
+    
+    const emptyRegistro = { tipoUsuario: '', dni: '', nombre: '', tipoPredio: '' };
+    if (setRegistroData) setRegistroData(emptyRegistro);
+    setLocalRegistro(emptyRegistro);
+    setPredio(null);
+    
+    setUtmEast('');
+    setUtmNorth('');
+    setGeoMode('gps');
+    
+    evidenceImages.forEach((img) => onRemoveImage(img.id));
   };
 
 
@@ -559,7 +577,7 @@ export const EvidenceFormScreen = ({
           <div>
             {isReinicio && (
               <button
-                onClick={() => onSave(false)}
+                onClick={() => handleSaveAndContinue()}
                 disabled={isLoading || evidenceImages.length === 0}
                 style={{
                   ...styles.btnPrimary,

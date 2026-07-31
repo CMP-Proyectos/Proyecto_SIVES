@@ -544,7 +544,7 @@ export function useReportFlow() {
       };
     }
 
-    // 2. Preparar el guardado offline por si falla la red
+    //Preparar el guardado offline por si falla la red
     const persistPendingRecord = async (reason: string) => {
       const pendingRecord = createPendingReportPayload({
         timestamp,
@@ -592,7 +592,7 @@ export function useReportFlow() {
       } else {
         showToast("Reporte guardado exitosamente", "success");
       }
-      if (regresar = false){
+      if (regresar === true){
         handleGoHome();
       }
     } catch (err) {
