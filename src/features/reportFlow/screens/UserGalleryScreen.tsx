@@ -469,8 +469,6 @@ export const UserGalleryScreen = ({
 
             {selectedRecordId && renderDetail()}
 
-            {/* CAMBIO SECUNDARIO: En lugar de usar styles.scrollableY que atrapa el contenido, 
-                simplemente usamos un div flex para que crezca libremente */}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {isLoading ? (
                     <div style={{padding:'40px', textAlign:'center', color:'#64748B'}}>Cargando galería...</div>

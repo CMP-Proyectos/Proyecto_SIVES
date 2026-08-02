@@ -7,14 +7,27 @@ import { TopNav } from "./components/TopNav";
 import { BottomNav } from "./components/BottomNav";
 import { Toast } from "./components/Toast";
 import { ConfirmModal } from "./components/ConfirmModal";
-import { PhotoEditModal } from "./components/PhotoEditModal";
 
 import { AuthScreen } from "./screens/AuthScreen";
 import { SelectionScreen } from "./screens/SelectionScreen";
 import { EvidenceFormScreen } from "./screens/EvidenceFormScreen";
-import { UserGalleryScreen } from "./screens/UserGalleryScreen";
 import { ActivityConfirmationScreen } from "./screens/ActivityConfirmationScreen";
-import { MapScreen } from "./screens/MapScreen";
+
+const MapScreen = React.lazy(() =>
+  import("./screens/MapScreen").then((m) => ({ default: m.MapScreen }))
+);
+const UserGalleryScreen = React.lazy(() =>
+  import("./screens/UserGalleryScreen").then((m) => ({ default: m.UserGalleryScreen }))
+);
+const PhotoEditModal = React.lazy(() =>
+  import("./components/PhotoEditModal").then((m) => ({ default: m.PhotoEditModal }))
+);
+
+const LazyScreenFallback = () => (
+  <div style={{ padding: "40px", textAlign: "center", color: "#64748B" }}>
+    Cargando...
+  </div>
+);
 
 const selectionCardStyle = {
   ...styles.listItem,
@@ -517,7 +530,9 @@ export default function ReportFlowPage() {
         )}
 
         {flow.step === "map" && (
-          <MapScreen isOnline={flow.isOnline} map={flow.map} />
+          <React.Suspense fallback={<LazyScreenFallback />}>
+            <MapScreen isOnline={flow.isOnline} map={flow.map} />
+          </React.Suspense>
         )}
 
         {flow.step === "form" && (
@@ -583,15 +598,17 @@ export default function ReportFlowPage() {
         )}
 
         {flow.step === "user_records" && (
-          <UserGalleryScreen
-            records={flow.userRecords}
-            isLoading={flow.isLoadingRecords}
-            selectedRecordId={flow.selectedRecordId}
-            onSelectRecord={flow.setSelectedRecordId}
-            onDelete={(record) => flow.requestDeleteRecord(record)}
-            onEdit={flow.openEditModal}
-            actualizarEstado={flow.actualizarEstadoVerificacion}
-          />
+          <React.Suspense fallback={<LazyScreenFallback />}>
+            <UserGalleryScreen
+              records={flow.userRecords}
+              isLoading={flow.isLoadingRecords}
+              selectedRecordId={flow.selectedRecordId}
+              onSelectRecord={flow.setSelectedRecordId}
+              onDelete={(record) => flow.requestDeleteRecord(record)}
+              onEdit={flow.openEditModal}
+              actualizarEstado={flow.actualizarEstadoVerificacion}
+            />
+          </React.Suspense>
         )}
 
         {flow.step === "files" && (
@@ -660,23 +677,25 @@ export default function ReportFlowPage() {
         />
       )}
 
-      <PhotoEditModal
-        open={flow.isPhotoModalOpen}
-        previewUrl={flow.editPreviewUrl}
-        comment={flow.editComment}
-        latitud = {flow.editLatitud}
-        longitud = {flow.editLongitud}
-        Actividad= {flow.editActividad}
-        Grupo = {flow.editGrupo}
-        especificacion={flow.editEspecificacion}
-        onLatitudChange = {flow.setEditLatitud}
-        onLongitudChange = {flow.setEditLongitud}
-        onEspecificacionChange={flow.setEditEspecificacion}
-        onCommentChange={flow.setEditComment}
-        onFileSelect={flow.handleEditFileSelect}
-        onClose={flow.closeEditModal}
-        onSave={flow.saveRecordEdits}
-      />
+      <React.Suspense fallback={null}>
+        <PhotoEditModal
+          open={flow.isPhotoModalOpen}
+          previewUrl={flow.editPreviewUrl}
+          comment={flow.editComment}
+          latitud = {flow.editLatitud}
+          longitud = {flow.editLongitud}
+          Actividad= {flow.editActividad}
+          Grupo = {flow.editGrupo}
+          especificacion={flow.editEspecificacion}
+          onLatitudChange = {flow.setEditLatitud}
+          onLongitudChange = {flow.setEditLongitud}
+          onEspecificacionChange={flow.setEditEspecificacion}
+          onCommentChange={flow.setEditComment}
+          onFileSelect={flow.handleEditFileSelect}
+          onClose={flow.closeEditModal}
+          onSave={flow.saveRecordEdits}
+        />
+      </React.Suspense>
       <Toast toast={flow.toast} />
       <ConfirmModal modal={flow.confirmModal} onClose={() => flow.setConfirmModal(null)} />
     </div>

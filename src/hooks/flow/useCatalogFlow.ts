@@ -226,14 +226,13 @@ export function useCatalogFlow(isOnline: boolean) {
         : [];
     const localityIds = projectLocalities.map((locality) => locality.ID_Localidad);
 
-    const projectDetails =
+    const [projectDetails, projectPredios] =
       localityIds.length > 0
-        ? await db.catalog_details.where("ID_Localidad").anyOf(localityIds).toArray()
-        : [];
-    const projectPredios =
-      localityIds.length > 0
-        ? await db.catalog_predios.where("ID_Localidad").anyOf(localityIds).toArray()
-        : [];
+        ? await Promise.all([
+            db.catalog_details.where("ID_Localidad").anyOf(localityIds).toArray(),
+            db.catalog_predios.where("ID_Localidad").anyOf(localityIds).toArray(),
+          ])
+        : [[], []];
 
     setFronts(projectFronts.sort((left, right) => sortByLabel(left.Nombre_Frente, right.Nombre_Frente)));
     setLocalities(projectLocalities.sort((left, right) => sortByLabel(left.Nombre_Localidad, right.Nombre_Localidad)));

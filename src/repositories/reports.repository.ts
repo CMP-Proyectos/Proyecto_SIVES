@@ -71,13 +71,10 @@ const insertReportRecord = async (params: {
   comment: string;
   ohms?: number | null | string;
   mainImage: UploadedReportImage;
+  supervisor?: number | null;
+  especialista?: number | null;
 }) => {
-  const especialista = null
-  const supervisor = null
-  return createRegistro({
-    //esta parte luce como error pero por el funcionamiento
-    //de la base de datos no es necesario enviar especialista y supervisor
-    //porque se inicializan en 0
+  const payload: any = {
     Nombre_Archivo: params.mainImage.Nombre_Archivo,
     URL_Archivo: params.mainImage.URL_Archivo,
     user_id: params.userId,
@@ -86,7 +83,17 @@ const insertReportRecord = async (params: {
     Ruta_Archivo: params.mainImage.Ruta_Archivo,
     Bucket: params.bucket,
     Ohms: params.ohms ?? null,
-  });
+  };
+
+  if (params.supervisor !== undefined) {
+    payload.supervisor = params.supervisor;
+  }
+  
+  if (params.especialista !== undefined) {
+    payload.especialista = params.especialista;
+  }
+
+  return createRegistro(payload);
 };
 
 const insertReportImages = async (recordId: number, uploadedImages: UploadedReportImage[]) => {

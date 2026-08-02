@@ -24,11 +24,16 @@ export default function Root({ children }: PropsWithChildren) {
 
         <ScrollViewStyleReset />
 
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link rel="preload" href="/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <style dangerouslySetInnerHTML={{
           __html: `
+            @font-face {
+              font-family: 'Plus Jakarta Sans';
+              font-style: normal;
+              font-weight: 100 900;
+              font-display: swap;
+              src: url('/fonts/plus-jakarta-sans.woff2') format('woff2');
+            }
             html, body, #root {
               font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
               background: #F6F8FB;
