@@ -90,8 +90,6 @@ export const EvidenceFormScreen = ({
 
   useEffect(() => {
     if (predio && activeRegistro.tipoUsuario === 'dni') {
-      // Actualizamos ambos valores de un solo golpe para evitar que 
-      // React sobrescriba el estado en la misma renderización
       const updatedState = {
         ...activeRegistro,
         nombre: predio.Nombre_Padron || '',
@@ -273,7 +271,6 @@ export const EvidenceFormScreen = ({
               <FileText size={18} /> Detalles de Padrón / Usuario
             </h3>
 
-            {/* a. Usuario */}
             <div style={{ marginBottom: '14px' }}>
               <label style={styles.label}>a. Tipo de Usuario</label>
               <select
@@ -291,7 +288,6 @@ export const EvidenceFormScreen = ({
               </select>
             </div>
 
-            {/* Selector de DNI de Base de Datos */}
             {activeRegistro.tipoUsuario === 'dni' && (
               <div style={{ marginBottom: '14px', paddingLeft: '12px', borderLeft: '3px solid #3B82F6' }}>
                 <label style={styles.label}>Seleccionar Persona (DNI)</label>
@@ -325,7 +321,6 @@ export const EvidenceFormScreen = ({
               />
             </div>
 
-            {/* b. Nombre */}
             <div style={{ marginBottom: '14px' }}>
               <label style={styles.label}>b. Nombre Completo</label>
               <input
@@ -338,7 +333,6 @@ export const EvidenceFormScreen = ({
               />
             </div>
 
-            {/* c. Tipo de predio */}
             <div style={{ marginBottom: '14px' }}>
               <label style={styles.label}>c. Tipo de Predio</label>
               <select

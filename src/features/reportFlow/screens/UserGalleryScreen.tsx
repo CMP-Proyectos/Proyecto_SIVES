@@ -374,11 +374,9 @@ export const UserGalleryScreen = ({
   };
 
   return (
-    // CAMBIO PRINCIPAL: Agregamos el layout de scroll flexible como en el resto de la app
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingBottom: '24px' }}>
         
-        {/* Modificamos la tarjeta para que se expanda sin límites y deje ver todo */}
         <div style={{ 
             ...styles.card, 
             maxHeight: 'none', 
