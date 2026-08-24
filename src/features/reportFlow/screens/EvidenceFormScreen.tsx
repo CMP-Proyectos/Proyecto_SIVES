@@ -29,6 +29,7 @@ interface Props {
   note: string; setNote: (v: string) => void;
   ohms: string; setOhms: (v: string) => void;
   isPatActivity: boolean;
+  isEncuesta?: boolean;
   isSeleccion: { value: string; label: string }[] | null;
   requiereArchivo: boolean;
   isCoordenadas: boolean;
@@ -48,7 +49,7 @@ export const EvidenceFormScreen = ({
   isFetchingGps, onCaptureGps,
   utmZone, setUtmZone, utmEast, setUtmEast, utmNorth, setUtmNorth, onUpdateUtm,
   evidenceImages, evidencePreview, isAnalyzing, aiFeedback, onCaptureFile, onRemoveImage,
-  predio, setPredio, prediosList = [], registroData, setRegistroData, note, setNote, ohms, setOhms, isPatActivity, isSeleccion, requiereArchivo,isCoordenadas, isRegistro, isReinicio,
+  predio, setPredio, prediosList = [], registroData, setRegistroData, note, setNote, ohms, setOhms, isPatActivity, isEncuesta, isSeleccion, requiereArchivo,isCoordenadas, isRegistro, isReinicio,
   isLoading, onSave,
   previousRecord
 }: Props) => {
@@ -353,7 +354,7 @@ export const EvidenceFormScreen = ({
 
           <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={onCaptureFile} style={{ display: 'none' }} />
           <input ref={galleryInputRef} type="file" accept="image/*" multiple onChange={onCaptureFile} style={{ display: 'none' }} />
-          <input ref={fileInputRef} type="file" accept=".pdf,.xls,.xlsx,.tif,.tiff,.zip,.docx,.dwg" multiple={isRegistro} onChange={onCaptureFile} style={{ display: "none" }} />
+          <input ref={fileInputRef} type="file" accept="*/*" multiple={isRegistro} onChange={onCaptureFile} style={{ display: "none" }} />
 
           {isRegistro && !evidencePreview && (
             <div style={{ backgroundColor: '#F0F9FF', padding: '12px', borderRadius: '6px', marginBottom: '16px', border: '1px dashed #BAE6FD' }}>
@@ -364,8 +365,7 @@ export const EvidenceFormScreen = ({
                 <li>1. Foto del predio</li>
                 <li>2. Foto de DNI (Anverso)</li>
                 <li>3. Foto de DNI (Reverso)</li>
-                <li>4. Encuesta (PDF o Foto)</li>
-                <li>5. Constancia (PDF o Foto)</li>
+                <li>4. Constancia (PDF o Foto)</li>
               </ul>
             </div>
           )}
@@ -527,6 +527,26 @@ export const EvidenceFormScreen = ({
                 onChange={(event) => setOhms(event.target.value)}
                 onFocus={ensureFieldVisibility}
                 placeholder="Ingrese la resistividad"
+                style={styles.input}
+              />
+            </div>
+          )}
+
+          {isEncuesta && (
+            <div style={{ marginTop: "14px" }}>
+              <label style={styles.label}>Documento de Identidad (DNI) / Encuestado</label>           
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={8}
+                value={ohms}
+                onChange={(event) => {
+                  const valor = event.target.value.replace(/\D/g, '').slice(0, 8);
+                  setOhms(valor);
+                }}
+                onFocus={ensureFieldVisibility}
+                placeholder="Ej: 02345676 (8 dígitos)"
                 style={styles.input}
               />
             </div>

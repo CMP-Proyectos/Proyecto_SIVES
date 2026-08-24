@@ -564,6 +564,7 @@ export default function ReportFlowPage() {
             ohms={flow.ohms}
             setOhms={flow.setOhms}
             isPatActivity={flow.isPatActivity}
+            isEncuesta={flow.isEncuesta}
             isSeleccion = {flow.isSelector}
             requiereArchivo = {flow.isArchivo}
             isCoordenadas = {flow.isCoordenadas}

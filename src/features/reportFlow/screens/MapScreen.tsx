@@ -2,7 +2,7 @@ import React from "react";
 import { MapCanvas } from "../components/MapCanvas";
 import { styles } from "../../../theme/styles";
 import type { UseMapFlowResult } from "../../../hooks/flow/useMapFlow";
-import { isCuadroTexto } from "../../../utils/activity";
+import { isCuadroTexto, isEncuesta } from "../../../utils/activity";
 
 type Option = {
   value: string;
@@ -175,7 +175,12 @@ export const MapScreen = ({ isOnline, map }: Props) => {
     Grupo: map.selectedRecord?.nombre_grupo,
     Nombre_Actividad: map.selectedRecord?.nombre_actividad,
   });
+  const selectedRecordIsEncuesta = isEncuesta({
+    Grupo: map.selectedRecord?.nombre_grupo,
+    Nombre_Actividad: map.selectedRecord?.nombre_actividad,
+  });
   const shouldShowOhms = selectedRecordIsPat && map.selectedRecord?.ohms != null;
+  const shouldShowEncuestaDni = selectedRecordIsEncuesta && map.selectedRecord?.ohms != null;
 
   const emptyMessage =
     map.mode === "global" && !map.selectedProjectId
@@ -474,6 +479,22 @@ export const MapScreen = ({ isOnline, map }: Props) => {
                       <div style={{ ...styles.label, marginBottom: "4px", color: "#047857" }}>Medición PAT</div>
                       <div style={{ fontSize: "20px", fontWeight: "800", color: "#065F46" }}>
                         {map.selectedRecord.ohms} Ω
+                      </div>
+                    </div>
+                  )}
+                  {shouldShowEncuestaDni && (
+                    <div
+                      style={{
+                        backgroundColor: "#EFF6FF",
+                        border: "1px solid #BFDBFE",
+                        borderRadius: "8px",
+                        padding: "12px",
+                        minWidth: 0,
+                      }}
+                    >
+                      <div style={{ ...styles.label, marginBottom: "4px", color: "#1D4ED8" }}>DNI Encuesta</div>
+                      <div style={{ fontSize: "20px", fontWeight: "800", color: "#1E40AF" }}>
+                        {map.selectedRecord.ohms}
                       </div>
                     </div>
                   )}

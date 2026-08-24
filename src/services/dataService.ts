@@ -659,7 +659,8 @@ const normalizeGlobalMapRow = (row: GlobalMapRpcRow): MapRecord | null => {
   const nombreSubestacion = toNullableString(
     getValueByAliases(row, ["nombre_subestacion", "subestacion", "Subestacion"])
   );
-  const ohms = toNullableNumber(getValueByAliases(row, ["ohms", "Ohms", "OHMS"]));
+  const rawOhms = getValueByAliases(row, ["ohms", "Ohms", "OHMS"]);
+  const ohms = rawOhms === null || rawOhms === undefined || rawOhms === "" ? null : (typeof rawOhms === "number" ? rawOhms : String(rawOhms).trim());
   const especialista = toNullableNumber(getValueByAliases(row, ["especialista", "Especialista", "ESPECIALISTA"]))
   const supervisor = toNullableNumber(getValueByAliases(row, ["supervisor", "Supervisor", "SUPERVISOR"]))
   const correo = toNullableString(getValueByAliases(row, ["correo", "Correo", "email"]));

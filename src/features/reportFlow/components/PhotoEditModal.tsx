@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { styles } from '../../../theme/styles';
-import { normalizeText } from "../../../utils/activity";
+import { isCuadroTexto, isEncuesta, getOpcionesSeleccion } from "../../../utils/activity";
 
 interface Props {
   open: boolean;
@@ -39,41 +39,9 @@ export const PhotoEditModal = ({
 }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isCuadroTexto = (
-    Nombre_Actividad: string,
-    Grupo: string
-  ) => {
-    const grupo = normalizeText(Grupo);
-    const nombre = normalizeText(Nombre_Actividad);
-  
-      const palabrasClaveArchivo = [
-      "calculos",
-      "foto de",
-    ];
-  
-    return (
-      palabrasClaveArchivo.some((palabra) => nombre.includes(palabra)) &&
-      grupo.includes("resistividad")
-    );
-  };
-  
-  const getOpcionesSeleccion = (
-    Nombre_Actividad: string,
-    Grupo: string
-  ) => {
-    const grupo = normalizeText(Grupo);
-    const nombre = normalizeText(Nombre_Actividad);
-    if (grupo.includes("servidumbre") && nombre.includes("llegada a la")) {
-      return [
-        { value: "no_servidumbre", label: "No tiene servidumbre" },
-        { value: "si_servidumbre", label: "Si tiene servidumbre" } 
-      ];
-    }
-    return null; 
-  };
-
-  const isPatActivity = isCuadroTexto(Actividad, Grupo);
-  const isSeleccion = getOpcionesSeleccion(Actividad, Grupo);
+  const isPatActivity = isCuadroTexto({ Nombre_Actividad: Actividad, Grupo });
+  const isEncuestaActivity = isEncuesta({ Nombre_Actividad: Actividad, Grupo });
+  const isSeleccion = getOpcionesSeleccion({ Nombre_Actividad: Actividad, Grupo });
 
   if (!open) return null;
 
@@ -107,7 +75,7 @@ export const PhotoEditModal = ({
           onClick={() => fileInputRef.current?.click()}
           style={{ ...styles.btnSecondary, width: '100%', marginBottom: '16px' }}
         >
-          Cambiar Foto
+          Cambiar Archivo / Foto
         </button>
 
         <input
@@ -115,7 +83,7 @@ export const PhotoEditModal = ({
           type="file"
           onChange={onFileSelect}
           style={{ display: 'none' }}
-          accept="image/*"
+          accept="*/*"
         />
 
         <label style={styles.label}>Comentario</label>
@@ -158,7 +126,27 @@ export const PhotoEditModal = ({
                 step="any"
                 min="0"
                 value={especificacion}
-                onChange={(e) => onEspecificacionChange(e.target.value)}
+                onChange={(event) => onEspecificacionChange(event.target.value)}
+                placeholder="Ingrese la resistividad"
+                style={styles.input}
+              />
+            </div>
+          )}
+
+          {isEncuestaActivity && (
+            <div style={{ marginTop: "14px" }}>
+              <label style={styles.label}>Documento de Identidad (DNI) / Encuestado</label>           
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={8}
+                value={especificacion}
+                onChange={(event) => {
+                  const valor = event.target.value.replace(/\D/g, '').slice(0, 8);
+                  onEspecificacionChange(valor);
+                }}
+                placeholder="Ej: 02345676 (8 dígitos)"
                 style={styles.input}
               />
             </div>

@@ -15,7 +15,7 @@ import {
 } from "../services/offlineSyncService";
 import { saveReportOnline } from "../repositories/reports.repository";
 import { Step, ToastState, ConfirmModalState } from "../features/reportFlow/types";
-import { isCuadroTexto, parseOhmsValue, getOpcionesSeleccion, isIngresoPorArchivo, requiereCoordenadas, isRegistroUsuarios, puedeNoReiniciar } from "../utils/activity";
+import { isCuadroTexto, isEncuesta, parseOhmsValue, getOpcionesSeleccion, isIngresoPorArchivo, requiereCoordenadas, isRegistroUsuarios, puedeNoReiniciar } from "../utils/activity";
 
 import { useSessionFlow } from "./flow/useSessionFlow";
 import type { SessionUser } from "./flow/useSessionFlow";
@@ -474,6 +474,7 @@ export function useReportFlow() {
     if (evidence.evidenceFiles.length > MAX_EVIDENCE_IMAGES) return showToast("Maximo 5 imagenes", "error");
 
     const isPatActivity = isCuadroTexto(catalog.selectedActivity);
+    const isEncuestaActivity = isEncuesta(catalog.selectedActivity);
     const isSelector = getOpcionesSeleccion(catalog.selectedActivity);
     const isArchivo = isIngresoPorArchivo(catalog.selectedActivity);
     const isCoordenadas = requiereCoordenadas(catalog.selectedActivity);
@@ -481,18 +482,23 @@ export function useReportFlow() {
     const parsedOhms = parseOhmsValue(evidence.ohms);
     const isReinicio = puedeNoReiniciar(catalog.selectedActivity);
 
-    
-    
     if (isPatActivity && parsedOhms === null) {
       showToast("Ingrese una medicion Ohms valida para PAT", "error");
       return;
     }
-    if (isSelector && evidence.ohms === null) {
-      showToast("Ingrese una especificacion", "error");
-      return;
-    }
     if (isPatActivity && parsedOhms !== null && parsedOhms < 0) {
       showToast("La medicion Ohms debe ser mayor o igual a 0", "error");
+      return;
+    }
+    if (isEncuestaActivity) {
+      const dniVal = (evidence.ohms ?? "").trim();
+      if (!/^\d{8}$/.test(dniVal)) {
+        showToast("El DNI de la encuesta debe tener 8 dígitos numéricos", "error");
+        return;
+      }
+    }
+    if (isSelector && evidence.ohms === null) {
+      showToast("Ingrese una especificacion", "error");
       return;
     }
 
@@ -560,7 +566,7 @@ export function useReportFlow() {
         lat: evidence.gpsLocation?.latitude || selectedDetail.Latitud || 0,
         lng: evidence.gpsLocation?.longitude || selectedDetail.Longitud || 0,
         comment: evidence.note,
-        ohms: isSelector ? evidence.ohms : (isPatActivity ? parsedOhms : null),
+        ohms: isSelector ? evidence.ohms : (isEncuestaActivity ? evidence.ohms.trim() : (isPatActivity ? parsedOhms : null)),
       });
       await savePendingReport(pendingRecord);
       showToast("Guardado localmente (Pendiente)", "info");
@@ -580,7 +586,7 @@ export function useReportFlow() {
         lng: evidence.gpsLocation?.longitude || selectedDetail.Longitud,
         userId: sessionUser.id,
         comment: evidence.note,
-        ohms: isSelector ? evidence.ohms : (isPatActivity ? parsedOhms : null),
+        ohms: isSelector ? evidence.ohms : (isEncuestaActivity ? evidence.ohms.trim() : (isPatActivity ? parsedOhms : null)),
         evidenceFiles: allEvidenceFiles,
         padronData : padronData
       });
@@ -781,7 +787,7 @@ export function useReportFlow() {
     gpsLocation: evidence.gpsLocation, handleCaptureGps: evidence.handleCaptureGps,
     utmZone: evidence.utmZone, setUtmZone: evidence.setUtmZone, utmEast: evidence.utmEast, setUtmEast: evidence.setUtmEast, utmNorth: evidence.utmNorth, setUtmNorth: evidence.setUtmNorth, handleUpdateFromUtm: evidence.handleUpdateFromUtm,
     evidenceImages: evidence.evidenceImages, evidencePreview: evidence.evidencePreview, handleCaptureFile: evidence.handleCaptureFile, removeEvidenceImage: evidence.removeEvidenceImage, note: evidence.note, setNote: evidence.setNote, isFetchingGps: evidence.isFetchingGps, isAnalyzing: evidence.isAnalyzing, aiFeedback: evidence.aiFeedback,
-    ohms: evidence.ohms, setOhms: evidence.setOhms, isPatActivity: isCuadroTexto(catalog.selectedActivity), isSelector : getOpcionesSeleccion(catalog.selectedActivity), isArchivo : isIngresoPorArchivo(catalog.selectedActivity), isCoordenadas : requiereCoordenadas(catalog.selectedActivity), isRegistro : isRegistroUsuarios(catalog.selectedActivity),
+    ohms: evidence.ohms, setOhms: evidence.setOhms, isPatActivity: isCuadroTexto(catalog.selectedActivity), isEncuesta: isEncuesta(catalog.selectedActivity), isSelector : getOpcionesSeleccion(catalog.selectedActivity), isArchivo : isIngresoPorArchivo(catalog.selectedActivity), isCoordenadas : requiereCoordenadas(catalog.selectedActivity), isRegistro : isRegistroUsuarios(catalog.selectedActivity),
     isReinicio: puedeNoReiniciar(catalog.selectedActivity),
     registroData : catalog.registroData, setRegistroData: catalog.setRegistroData,
     saveReport, getMapUrl,

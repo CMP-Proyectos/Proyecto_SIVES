@@ -12,16 +12,31 @@ export const isCuadroTexto = (actividad?: {
   const grupo = normalizeText(actividad?.Grupo);
   const nombre = normalizeText(actividad?.Nombre_Actividad);
 
-    const palabrasClaveArchivo = [
+  const palabrasClaveGrupo = [
+    "resistividad"
+  ];
+  
+  const palabrasClaveArchivo = [
     "calculos",
-    "foto de",
+    "foto de"
   ];
 
   return (
     palabrasClaveArchivo.some((palabra) => nombre.includes(palabra)) &&
-    grupo.includes("resistividad")
+    palabrasClaveGrupo.some((palabra) => grupo.includes(palabra))
   );
 };
+
+export const isEncuesta = (actividad?: {
+  Grupo?: string | null;
+  Nombre_Actividad?: string | null;
+} | null) => {
+  const grupo = normalizeText(actividad?.Grupo);
+  const nombre = normalizeText(actividad?.Nombre_Actividad);
+
+  return nombre.includes("encuesta") || grupo.includes("encuesta");
+};
+
 
 export const getOpcionesSeleccion = (actividad?: {
   Grupo?: string | null;
@@ -56,7 +71,8 @@ export const isIngresoPorArchivo = (actividad?: {
     "padron",
     "autoridad",
     "calculos",
-    "curva"
+    "curva",
+    "encuesta"
   ];
 
   return palabrasClaveArchivo.some((palabra) => nombre.includes(palabra));
