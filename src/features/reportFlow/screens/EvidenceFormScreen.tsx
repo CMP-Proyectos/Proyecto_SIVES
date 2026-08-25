@@ -243,25 +243,52 @@ export const EvidenceFormScreen = ({
           )}
 
           {geoMode === 'utm' && (
-            <div style={es.utmRow}>
-              <div style={{ width: 'auto', minWidth: '100px', marginRight: '10px' }}>
-                <label style={styles.label}>ZONA</label>
-                <select value={utmZone} onChange={(e) => setUtmZone(e.target.value)} style={styles.selects}>
-                  <option value="17">Zona 17S</option><option value="18">Zona 18S</option><option value="19">Zona 19S</option>
-                </select>
+            <>
+              <div style={es.utmRow}>
+                <div style={{ width: 'auto', minWidth: '100px', marginRight: '10px' }}>
+                  <label style={styles.label}>ZONA</label>
+                  <select value={utmZone} onChange={(e) => setUtmZone(e.target.value)} style={styles.selects}>
+                    <option value="17">Zona 17S</option><option value="18">Zona 18S</option><option value="19">Zona 19S</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={styles.label}>ESTE (X)</label>
+                  <input type="number" value={utmEast} onChange={e => setUtmEast(e.target.value)} onFocus={ensureFieldVisibility} placeholder="Ej: 280500" style={es.inputNoMargin} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={styles.label}>NORTE (Y)</label>
+                  <input type="number" value={utmNorth} onChange={e => setUtmNorth(e.target.value)} onFocus={ensureFieldVisibility} placeholder="Ej: 8665000" style={es.inputNoMargin} />
+                </div>
+                <button onClick={onUpdateUtm} style={es.btnSquare}>
+                  <RefreshCw size={18} />
+                </button>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={styles.label}>ESTE (X)</label>
-                <input type="number" value={utmEast} onChange={e => setUtmEast(e.target.value)} onFocus={ensureFieldVisibility} placeholder="Ej: 280500" style={es.inputNoMargin} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={styles.label}>NORTE (Y)</label>
-                <input type="number" value={utmNorth} onChange={e => setUtmNorth(e.target.value)} onFocus={ensureFieldVisibility} placeholder="Ej: 8665000" style={es.inputNoMargin} />
-              </div>
-              <button onClick={onUpdateUtm} style={es.btnSquare}>
-                <RefreshCw size={18} />
-              </button>
-            </div>
+              {(displayLat !== 0 || displayLng !== 0) ? (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  marginTop: '8px', padding: '8px 12px',
+                  backgroundColor: '#F0FDF4', borderRadius: '6px',
+                  border: '1px solid #BBF7D0'
+                }}>
+                  <MapPin size={14} color="#16A34A" />
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#15803D' }}>
+                    CONVERTIDO: {displayLat.toFixed(6)}, {displayLng.toFixed(6)}
+                  </span>
+                </div>
+              ) : (utmEast && utmNorth) ? (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  marginTop: '8px', padding: '8px 12px',
+                  backgroundColor: '#FEF3C7', borderRadius: '6px',
+                  border: '1px solid #FDE68A'
+                }}>
+                  <AlertCircle size={14} color="#D97706" />
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#92400E' }}>
+                    Presione ↻ para convertir las coordenadas UTM
+                  </span>
+                </div>
+              ) : null}
+            </>
           )}
           </div>
         )}

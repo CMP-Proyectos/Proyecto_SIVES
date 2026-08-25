@@ -33,6 +33,7 @@ export function useEvidenceFlow(
     utmNorth: gps.utmNorth,
     setUtmNorth: gps.setUtmNorth,
     handleUpdateFromUtm: gps.handleUpdateFromUtm,
+    tryConvertUtm: gps.tryConvertUtm,
     evidenceImages: images.evidenceImages,
     evidenceFiles: images.evidenceFiles,
     evidencePreview: images.evidencePreview,

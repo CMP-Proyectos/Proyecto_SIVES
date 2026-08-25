@@ -34,18 +34,37 @@ export function useGpsLocation(showToast: ShowToast) {
     );
   };
 
+  const convertUtmToLatLng = (east: string, north: string, zone: string): GpsLocation | null => {
+    if (!east || !north) return null;
+    try {
+      const [lng, lat] = proj4(utmZones[zone as keyof typeof utmZones], WGS84, [
+        Number(east),
+        Number(north),
+      ]);
+      if (isNaN(lat) || isNaN(lng)) return null;
+      return { latitude: lat, longitude: lng };
+    } catch {
+      return null;
+    }
+  };
+
   const handleUpdateFromUtm = () => {
     if (!utmEast || !utmNorth) return showToast("Faltan datos UTM", "info");
-    try {
-      const [lng, lat] = proj4(utmZones[utmZone as keyof typeof utmZones], WGS84, [
-        Number(utmEast),
-        Number(utmNorth),
-      ]);
-      setGpsLocation({ latitude: lat, longitude: lng });
+    const result = convertUtmToLatLng(utmEast, utmNorth, utmZone);
+    if (result) {
+      setGpsLocation(result);
       showToast("UTM OK", "success");
-    } catch {
+    } else {
       showToast("UTM invalida", "error");
     }
+  };
+
+  const tryConvertUtm = (): GpsLocation | null => {
+    const result = convertUtmToLatLng(utmEast, utmNorth, utmZone);
+    if (result) {
+      setGpsLocation(result);
+    }
+    return result;
   };
 
   const resetGpsLocation = () => {
@@ -66,6 +85,7 @@ export function useGpsLocation(showToast: ShowToast) {
     utmNorth,
     setUtmNorth,
     handleUpdateFromUtm,
+    tryConvertUtm,
     resetGpsLocation,
   };
 }
