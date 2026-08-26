@@ -68,6 +68,8 @@ export type MapRecord = UserRecord & {
   nombre_proyecto: string | null;
   nombre_frente: string | null;
   nombre_subestacion: string | null;
+  Nombre: string | null;
+  DNI: string | null;
 };
 
 export interface RegistroUsuariosData {
@@ -608,6 +610,8 @@ export const getUserMapRecords = (records: UserRecord[]): MapRecord[] => {
       nombre_proyecto: record.nombre_proyecto || null,
       nombre_frente: record.nombre_frente || null,
       nombre_subestacion: record.nombre_subestacion || null,
+      Nombre: null,
+      DNI: null,
       source: "mine" as const,
     }));
 };
@@ -664,6 +668,8 @@ const normalizeGlobalMapRow = (row: GlobalMapRpcRow): MapRecord | null => {
   const especialista = toNullableNumber(getValueByAliases(row, ["especialista", "Especialista", "ESPECIALISTA"]))
   const supervisor = toNullableNumber(getValueByAliases(row, ["supervisor", "Supervisor", "SUPERVISOR"]))
   const correo = toNullableString(getValueByAliases(row, ["correo", "Correo", "email"]));
+  const Nombre = toNullableString(getValueByAliases(row, ["nombre", "Nombre"]));
+  const DNI = toNullableString(getValueByAliases(row, ["dni", "DNI"]));
 
   if (!idRegistro || !fechaSubida || !nombreLocalidad || !nombreDetalle || !nombreActividad) {
     return null;
@@ -707,6 +713,8 @@ const normalizeGlobalMapRow = (row: GlobalMapRpcRow): MapRecord | null => {
     especialista,
     supervisor,
     correo,
+    Nombre,
+    DNI,
     source: "global",
   };
 };

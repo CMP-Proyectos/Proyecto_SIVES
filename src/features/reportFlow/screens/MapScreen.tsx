@@ -2,7 +2,7 @@ import React from "react";
 import { MapCanvas } from "../components/MapCanvas";
 import { styles } from "../../../theme/styles";
 import type { UseMapFlowResult } from "../../../hooks/flow/useMapFlow";
-import { isCuadroTexto, isEncuesta } from "../../../utils/activity";
+import { isCuadroTexto, isEncuesta, isRegistroUsuarios } from "../../../utils/activity";
 
 type Option = {
   value: string;
@@ -181,6 +181,10 @@ export const MapScreen = ({ isOnline, map }: Props) => {
   });
   const shouldShowOhms = selectedRecordIsPat && map.selectedRecord?.ohms != null;
   const shouldShowEncuestaDni = selectedRecordIsEncuesta && map.selectedRecord?.ohms != null;
+  const selectedRecordIsRegistro = isRegistroUsuarios({
+    Grupo: map.selectedRecord?.nombre_grupo,
+    Nombre_Actividad: map.selectedRecord?.nombre_actividad,
+  });
 
   const emptyMessage =
     map.mode === "global" && !map.selectedProjectId
@@ -495,6 +499,38 @@ export const MapScreen = ({ isOnline, map }: Props) => {
                       <div style={{ ...styles.label, marginBottom: "4px", color: "#1D4ED8" }}>DNI Encuesta</div>
                       <div style={{ fontSize: "20px", fontWeight: "800", color: "#1E40AF" }}>
                         {map.selectedRecord.ohms}
+                      </div>
+                    </div>
+                  )}
+                  {selectedRecordIsRegistro && (
+                    <div
+                      style={{
+                        backgroundColor: "#FFF7ED",
+                        border: "1px solid #FED7AA",
+                        borderRadius: "8px",
+                        padding: "12px",
+                        minWidth: 0,
+                      }}
+                    >
+                      <div style={{ ...styles.label, marginBottom: "4px", color: "#C2410C" }}>Nombre</div>
+                      <div style={{ fontSize: "15px", fontWeight: "700", color: "#9A3412", overflowWrap: "anywhere" }}>
+                        {map.selectedRecord.Nombre || "---"}
+                      </div>
+                    </div>
+                  )}
+                  {selectedRecordIsRegistro && (
+                    <div
+                      style={{
+                        backgroundColor: "#FFF7ED",
+                        border: "1px solid #FED7AA",
+                        borderRadius: "8px",
+                        padding: "12px",
+                        minWidth: 0,
+                      }}
+                    >
+                      <div style={{ ...styles.label, marginBottom: "4px", color: "#C2410C" }}>DNI</div>
+                      <div style={{ fontSize: "15px", fontWeight: "700", color: "#9A3412", overflowWrap: "anywhere" }}>
+                        {map.selectedRecord.DNI || "---"}
                       </div>
                     </div>
                   )}

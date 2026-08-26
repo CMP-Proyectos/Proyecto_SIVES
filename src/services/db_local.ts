@@ -52,15 +52,12 @@ class MyDatabase extends DexieBase {
   catalog_localities!: Table<LocalityRecord>;
   catalog_details!: Table<DetailRecord>;
   catalog_predios!: Table<PrediosRecord>;
-  catalog_activities!: Table<ActivityRecord>; // <--- Esta faltaba y es clave
+  catalog_activities!: Table<ActivityRecord>;
   history_cache!: Table<CachedRecord>;
   activity_properties_cache!: Table<CachedActivityProperty>;
 
   constructor() {
     super('ReportFlowDB');
-    
-    // 2. Definimos el esquema (Nombres de tablas y sus índices)
-    // NOTA: Si cambias esto, a veces es necesario borrar la BD en el navegador para que se regenere
     this.version(4).stores({
       pendingUploads: '++id, timestamp, meta.userId',
       

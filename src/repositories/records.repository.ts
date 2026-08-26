@@ -145,7 +145,6 @@ export async function deleteRecordWithAssets(params: DeleteRecordParams): Promis
       recordId: params.recordId,
       error,
     });
-    // Mantiene el comportamiento actual: si falla la consulta de hijas, igual se intenta eliminar el registro.
   }
 
   if (bucketToUse && filesToDelete.size > 0) {
@@ -158,7 +157,6 @@ export async function deleteRecordWithAssets(params: DeleteRecordParams): Promis
         filesToDelete: Array.from(filesToDelete),
         error,
       });
-      // Mantiene el comportamiento actual: fallas de storage no interrumpen el borrado del registro.
     }
   }
 

@@ -253,7 +253,6 @@ export function useMapFlow({
     }
   }, [isOnline, selectedProjectId, showToast]);
 
-  // Setters sin limpieza forzada, manteniendo la total independencia de opciones
   const setSelectedProjectId = useCallback((projectId: number | null) => setSelectedProjectIdState(projectId), []);
   const setSelectedItem = useCallback((item: string | null) => setSelectedItemState(item), []);
   const setSelectedStructure = useCallback((structure: string | null) => setSelectedStructureState(structure), []);
