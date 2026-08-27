@@ -127,14 +127,17 @@ export const saveReportOnline = async (
       ohms: params.ohms ?? null,
       mainImage,
     });
-
     const recordId = recordResponse.data?.[0]?.ID_Registros ?? null;
     if (recordId) {
       await insertReportImages(recordId, uploadedImages);
     }
 
     if(params.padronData){
-      await createPrediosReport(params.padronData);
+      const padronPayload = {
+          ...params.padronData,
+          ID_Verificada: checkedActivity.ID_Verificada
+      };
+      await createPrediosReport(padronPayload);
     }
 
     return {
