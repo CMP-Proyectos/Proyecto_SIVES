@@ -4,9 +4,13 @@ import type { ConfirmModalState } from "../../features/reportFlow/types";
 import { logger } from "../../lib/logger";
 import {
   deleteRecordWithAssets,
+  fetchSecondaryImages,
+  getMaxImageOrder,
   updateRecordWithOptionalImage,
+  uploadAndInsertAdditionalImages,
 } from "../../repositories/records.repository";
-import type { UserRecord } from "../../types/records.types";
+import type { SecondaryImageInfo, UserRecord } from "../../types/records.types";
+import { isRegistroUsuarios } from "../../utils/activity";
 
 export function useRecordsFlow(
     sessionUserId: string | undefined,
@@ -32,6 +36,10 @@ export function useRecordsFlow(
   const [editLongitud, setEditLongitud] = useState<number | null>(null);
   const [editEspecificacion, setEditEspecificacion] = useState("");
   const [editPreviewUrl, setEditPreviewUrl] = useState("");
+  const [editAdditionalFiles, setEditAdditionalFiles] = useState<File[]>([]);
+  const [editAdditionalPreviewUrls, setEditAdditionalPreviewUrls] = useState<string[]>([]);
+  const [editExistingSecondaryImages, setEditExistingSecondaryImages] = useState<SecondaryImageInfo[]>([]);
+  const [editIsMultiFile, setEditIsMultiFile] = useState(false);
 
   useEffect(() => {
     setUserRecords([]);
@@ -107,14 +115,30 @@ export function useRecordsFlow(
         masterBucket: MASTER_BUCKET,
       });
 
+      if (editAdditionalFiles.length > 0 && item.bucket) {
+        const maxOrder = await getMaxImageOrder(item.id_registro);
+        await uploadAndInsertAdditionalImages({
+          recordId: item.id_registro,
+          files: editAdditionalFiles,
+          bucket: item.bucket,
+          currentImagePath: item.ruta_archivo,
+          masterBucket: MASTER_BUCKET,
+          startOrder: maxOrder + 1,
+        });
+      }
+
       showToast("Actualizado", "success");
       setIsPhotoModalOpen(false);
       setEditEvidenceFile(null);
+      setEditAdditionalFiles([]);
+      setEditAdditionalPreviewUrls([]);
+      setEditExistingSecondaryImages([]);
       await loadUserRecords();
     } catch (error) {
       logger.error("[useRecordsFlow] Error actualizando registro", error, {
         recordId: item.id_registro,
         hasReplacementFile: Boolean(editEvidenceFile),
+        additionalFilesCount: editAdditionalFiles.length,
       });
       showToast("Error al actualizar", "error");
     } finally {
@@ -134,6 +158,24 @@ export function useRecordsFlow(
       setActividad(record.nombre_actividad);
       setGrupo(record.nombre_grupo ?? "");
       setEditEspecificacion(record.ohms?.toString() ?? "");
+
+      setEditAdditionalFiles([]);
+      setEditAdditionalPreviewUrls([]);
+      setEditExistingSecondaryImages([]);
+
+      const isMulti = isRegistroUsuarios({
+        Nombre_Actividad: record.nombre_actividad,
+        Grupo: record.nombre_grupo,
+      });
+      setEditIsMultiFile(isMulti);
+
+      if (isMulti) {
+        fetchSecondaryImages(record.id_registro)
+          .then((images) => setEditExistingSecondaryImages(images))
+          .catch((err) =>
+            logger.warn("[useRecordsFlow] Error cargando imágenes secundarias", { err })
+          );
+      }
     }
   };
 
@@ -218,11 +260,36 @@ export function useRecordsFlow(
     editEvidenceFile,
     setEditEvidenceFile,
     handleCreateCSV,
+    editIsMultiFile,
+    editAdditionalPreviewUrls,
+    editExistingSecondaryUrls: editExistingSecondaryImages.map((img) => img.url),
     handleEditFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files?.[0]) {
         setEditEvidenceFile(e.target.files[0]);
         setEditPreviewUrl(URL.createObjectURL(e.target.files[0]));
       }
+    },
+    handleEditAdditionalFiles: (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      const currentTotal = editExistingSecondaryImages.length + editAdditionalFiles.length;
+      const maxNew = 3 - currentTotal; // max 3 secundarias (4 total contando la principal)
+      if (maxNew <= 0) return;
+
+      const newFiles = Array.from(files).slice(0, maxNew);
+      const newUrls = newFiles.map((f) => URL.createObjectURL(f));
+
+      setEditAdditionalFiles((prev) => [...prev, ...newFiles]);
+      setEditAdditionalPreviewUrls((prev) => [...prev, ...newUrls]);
+    },
+    handleRemoveAdditionalFile: (index: number) => {
+      setEditAdditionalPreviewUrls((prev) => {
+        const url = prev[index];
+        if (url) URL.revokeObjectURL(url);
+        return prev.filter((_, i) => i !== index);
+      });
+      setEditAdditionalFiles((prev) => prev.filter((_, i) => i !== index));
     },
   };
 }

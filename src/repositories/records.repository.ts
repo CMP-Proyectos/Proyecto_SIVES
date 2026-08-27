@@ -4,6 +4,7 @@ import type {
   DeleteRecordParams,
   RecordImageRow,
   RecordUpdatePayload,
+  SecondaryImageInfo,
   UpdateCoordenadas,
   UpdateRecordWithImageParams,
   UploadedRecordImage,
@@ -201,4 +202,65 @@ export async function updateRecordWithOptionalImage(
 
   await updateRecordInfo(params.recordId, updates);
   await updateCoordenadas(params.recordId, coordenadas);
+}
+
+export async function getMaxImageOrder(recordId: number): Promise<number> {
+  const { data, error } = await supabase
+    .from("Registro_Imagenes")
+    .select("Orden")
+    .eq("ID_Registro", recordId)
+    .order("Orden", { ascending: false })
+    .limit(1);
+
+  if (error) throw error;
+  return data?.[0]?.Orden ?? 0;
+}
+
+export async function fetchSecondaryImages(recordId: number): Promise<SecondaryImageInfo[]> {
+  const { data, error } = await supabase
+    .from("Registro_Imagenes")
+    .select("URL_Archivo, Ruta_Archivo, Orden")
+    .eq("ID_Registro", recordId)
+    .eq("Es_Principal", false)
+    .order("Orden", { ascending: true });
+
+  if (error) throw error;
+
+  return ((data || []) as { URL_Archivo: string; Ruta_Archivo: string; Orden: number }[]).map(
+    (row) => ({
+      url: row.URL_Archivo,
+      path: row.Ruta_Archivo,
+      orden: row.Orden,
+    })
+  );
+}
+
+export async function uploadAndInsertAdditionalImages(params: {
+  recordId: number;
+  files: File[];
+  bucket: string;
+  currentImagePath?: string | null;
+  masterBucket: string;
+  startOrder: number;
+}): Promise<void> {
+  for (let i = 0; i < params.files.length; i++) {
+    const uploaded = await uploadReplacementRecordImage({
+      bucket: params.bucket,
+      replacementFile: params.files[i],
+      masterBucket: params.masterBucket,
+      currentImagePath: params.currentImagePath,
+    });
+
+    const { error } = await supabase.from("Registro_Imagenes").insert({
+      ID_Registro: params.recordId,
+      Orden: params.startOrder + i,
+      Nombre_Archivo: uploaded.fileName,
+      URL_Archivo: uploaded.publicUrl,
+      Ruta_Archivo: uploaded.path,
+      Bucket: uploaded.bucket,
+      Es_Principal: false,
+    });
+
+    if (error) throw error;
+  }
 }

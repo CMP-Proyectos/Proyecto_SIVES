@@ -695,6 +695,11 @@ export default function ReportFlowPage() {
           onFileSelect={flow.handleEditFileSelect}
           onClose={flow.closeEditModal}
           onSave={flow.saveRecordEdits}
+          isMultiFile={flow.editIsMultiFile}
+          additionalPreviewUrls={flow.editAdditionalPreviewUrls}
+          existingSecondaryUrls={flow.editExistingSecondaryUrls}
+          onAdditionalFilesSelect={flow.handleEditAdditionalFiles}
+          onRemoveAdditionalFile={flow.handleRemoveAdditionalFile}
         />
       </React.Suspense>
       <Toast toast={flow.toast} />

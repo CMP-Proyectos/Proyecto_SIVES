@@ -123,3 +123,13 @@ export type UploadedRecordImage = {
   fileName: string;
   bucket: string;
 };
+
+export type UpdateRecordWithMultipleImagesParams = UpdateRecordWithImageParams & {
+  additionalFiles?: File[];
+};
+
+export type SecondaryImageInfo = {
+  url: string;
+  path: string;
+  orden: number;
+};

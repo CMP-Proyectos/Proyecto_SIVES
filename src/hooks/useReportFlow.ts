@@ -817,6 +817,11 @@ export function useReportFlow() {
     editActividad: records.Actividad, editGrupo: records.Grupo,
     editComment: records.editComment, setEditComment: records.setEditComment, editPreviewUrl: records.editPreviewUrl, handleEditFileSelect: (e:any) => { if(e.target.files?.[0]) { records.setEditEvidenceFile(e.target.files[0]); records.setEditPreviewUrl(URL.createObjectURL(e.target.files[0])); } },
     saveRecordEdits: records.saveRecordEdits,
+    editIsMultiFile: records.editIsMultiFile,
+    editAdditionalPreviewUrls: records.editAdditionalPreviewUrls,
+    editExistingSecondaryUrls: records.editExistingSecondaryUrls,
+    handleEditAdditionalFiles: records.handleEditAdditionalFiles,
+    handleRemoveAdditionalFile: records.handleRemoveAdditionalFile,
     handleGoHome, goBack,
     previousRecord,
     isAlreadyRegistered
