@@ -68,8 +68,6 @@ export type MapRecord = UserRecord & {
   nombre_proyecto: string | null;
   nombre_frente: string | null;
   nombre_subestacion: string | null;
-  Nombre: string | null;
-  DNI: string | null;
 };
 
 export interface RegistroUsuariosData {
@@ -501,8 +499,7 @@ export const fetchUserRecords = async (userId: string, isEspecialista: boolean|u
 
   const recordIds = allRegistros.map((record) => record.ID_Registros);
   const imageCountByRecordId = new Map<number, number>();
-  const correoByRecordId = new Map<number, string>();
-  
+  const userDetailsByRecordId = new Map<number, { correo: string | null; dni: string | null; nombre: string | null }>();  
   if (recordIds.length > 0) {
     const recordIdChunks = chunkArray(recordIds, 1000);
 
@@ -520,17 +517,20 @@ export const fetchUserRecords = async (userId: string, isEspecialista: boolean|u
         imageCountByRecordId.set(recordId, (imageCountByRecordId.get(recordId) || 0) + 1);
       }
 
-      // Correos (Drive)
       const { data: correoRows, error: correoError } = await supabase
         .from("vista_registros_drive")
-        .select("ID_Registros, Correo")
+        .select("ID_Registros, Correo, DNI, Nombre_Predio")
         .in("ID_Registros", chunk);
 
       if (correoError) throw correoError;
 
       for (const row of (correoRows || [])) {
-        if (row.ID_Registros && row.Correo) {
-          correoByRecordId.set(row.ID_Registros, row.Correo);
+        if (row.ID_Registros) {
+          userDetailsByRecordId.set(row.ID_Registros, { 
+            correo: row.Correo || null, 
+            dni: row.DNI || null,
+            nombre: row.Nombre_Predio || null,
+          });
         }
       }
     }
@@ -587,7 +587,9 @@ export const fetchUserRecords = async (userId: string, isEspecialista: boolean|u
       ohms: record.Ohms ?? null,
       supervisor: record.Supervisor,
       especialista: record.Especialista,
-      correo: correoByRecordId.get(record.ID_Registros) || null,
+      correo: userDetailsByRecordId.get(record.ID_Registros)?.correo || null,
+      DNI: userDetailsByRecordId.get(record.ID_Registros)?.dni || null,
+      Nombre: userDetailsByRecordId.get(record.ID_Registros)?.nombre || null,
     };
   });
 
@@ -610,8 +612,8 @@ export const getUserMapRecords = (records: UserRecord[]): MapRecord[] => {
       nombre_proyecto: record.nombre_proyecto || null,
       nombre_frente: record.nombre_frente || null,
       nombre_subestacion: record.nombre_subestacion || null,
-      Nombre: null,
-      DNI: null,
+      Nombre: record.Nombre || null,
+      DNI: record.DNI || null,
       source: "mine" as const,
     }));
 };
@@ -668,7 +670,7 @@ const normalizeGlobalMapRow = (row: GlobalMapRpcRow): MapRecord | null => {
   const especialista = toNullableNumber(getValueByAliases(row, ["especialista", "Especialista", "ESPECIALISTA"]))
   const supervisor = toNullableNumber(getValueByAliases(row, ["supervisor", "Supervisor", "SUPERVISOR"]))
   const correo = toNullableString(getValueByAliases(row, ["correo", "Correo", "email"]));
-  const Nombre = toNullableString(getValueByAliases(row, ["nombre", "Nombre"]));
+  const Nombre = toNullableString(getValueByAliases(row, ["nombre_predio", "Nombre_Predio", "nombre", "Nombre"]));
   const DNI = toNullableString(getValueByAliases(row, ["dni", "DNI"]));
 
   if (!idRegistro || !fechaSubida || !nombreLocalidad || !nombreDetalle || !nombreActividad) {

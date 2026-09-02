@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { styles } from '../../../theme/styles';
 import type { UserRecord } from '../../../types/records.types';
 import { useReportFlow } from "../../../hooks/useReportFlow";
+import { isRegistroUsuarios } from '../../../utils/activity';
 
 interface Props {
     records: UserRecord[];
@@ -191,6 +192,10 @@ export const UserGalleryScreen = ({
     const rec = filteredRecords.find(r => r.id_registro === selectedRecordId);
     if (!rec) return null;
 
+    const isRegistro = isRegistroUsuarios({
+      Grupo: rec.nombre_grupo,
+      Nombre_Actividad: rec.nombre_actividad,
+    });
     const proyectoStr = rec.nombre_proyecto || (rec.bucket ? rec.bucket.replace(/_/g, ' ').toUpperCase() : "GENERAL");
     const primaryLabel = getPrimaryRecordLabel(rec);
     const activityDetailLabel = getActivityDetailLabel(rec);
@@ -274,6 +279,20 @@ export const UserGalleryScreen = ({
                             <label style={styles.label}>Dueño</label>
                             <div style={styles.text}>{rec.correo}</div>
                         </div>
+
+                        {isRegistro && (
+                            <>
+                                <div>
+                                    <label style={styles.label}>Nombre</label>
+                                    <div style={styles.text}>{rec.Nombre || "---"}</div>
+                                </div>
+
+                                <div>
+                                    <label style={styles.label}>DNI</label>
+                                    <div style={styles.text}>{rec.DNI || "---"}</div>
+                                </div>
+                            </>
+                        )}
 
                         <div>
                             <label style={styles.label}>FRENTE</label>

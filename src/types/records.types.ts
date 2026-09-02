@@ -28,6 +28,8 @@ export interface UserRecord {
   supervisor: number | null;
   especialista: number | null;
   correo: string | null;
+  Nombre?: string | null;
+  DNI?: string | null;
 }
 
 export type CreateRegistroPayload = {

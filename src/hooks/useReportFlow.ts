@@ -527,7 +527,8 @@ export function useReportFlow() {
     const folderProject = sanitizeName(currentProject?.Proyecto_Nombre || "General");
     const folderFront = sanitizeName(currentFront?.Nombre_Frente || "Sin_Frente");
     const folderLocality = sanitizeName(currentLocality?.Nombre_Localidad || "Sin_Localidad");
-    const activityTag = sanitizeName(catalog.selectedActivity?.Nombre_Actividad || "Evidencia").substring(0, 30);
+    const localityTag = sanitizeName(currentLocality?.Nombre_Localidad || "Sin_Localidad").substring(0, 30);
+    const dniTag = isRegistro && catalog.registroData?.dni ? `_${catalog.registroData.dni}` : "";
 
     const sessionUser = session.sessionUser;
     const selectedDetail = catalog.selectedDetail;
@@ -538,7 +539,7 @@ export function useReportFlow() {
     evidence.evidenceFiles.forEach((file, index) => {
       const order = index + 1;
       const fileExtension = file.name.split('.').pop() || (isArchivo ? 'pdf' : 'jpg');
-      const fileName = `${activityTag}_${timestamp}_${order}.${fileExtension}`;
+      const fileName = `${localityTag}${dniTag}_${timestamp}_${order}.${fileExtension}`;
 
       allEvidenceFiles.push({
         file,
