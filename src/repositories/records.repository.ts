@@ -64,6 +64,29 @@ export async function updateCoordenadas(recordId: number, updates: UpdateCoorden
   if (updateError) throw updateError;
 }
 
+export async function updateDetallesPadron(
+  recordId: number,
+  data: { DNI?: string; Nombre?: string; "Tipo de Predio"?: string }
+): Promise<void> {
+  const { data: registroData, error: fetchError } = await supabase
+    .from("Registros")
+    .select("ID_Verificada")
+    .eq("ID_Registros", recordId)
+    .single();
+
+  if (fetchError) throw fetchError;
+  if (!registroData || !registroData.ID_Verificada) {
+    throw new Error("No se encontró un ID_Verificada para este registro.");
+  }
+
+  const { error: updateError } = await supabase
+    .from("Detalles_Padron")
+    .update(data)
+    .eq("ID_Verificada", registroData.ID_Verificada);
+
+  if (updateError) throw updateError;
+}
+
 export async function updateRecordImageRelations(
   recordId: number,
   image: UploadedRecordImage
