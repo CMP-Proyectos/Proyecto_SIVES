@@ -700,6 +700,12 @@ export default function ReportFlowPage() {
           existingSecondaryUrls={flow.editExistingSecondaryUrls}
           onAdditionalFilesSelect={flow.handleEditAdditionalFiles}
           onRemoveAdditionalFile={flow.handleRemoveAdditionalFile}
+          editDni={flow.editDni}
+          editNombre={flow.editNombre}
+          editTipoPredio={flow.editTipoPredio}
+          onDniChange={flow.setEditDni}
+          onNombreChange={flow.setEditNombre}
+          onTipoPredioChange={flow.setEditTipoPredio}
         />
       </React.Suspense>
       <Toast toast={flow.toast} />

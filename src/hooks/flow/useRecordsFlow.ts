@@ -6,6 +6,7 @@ import {
   deleteRecordWithAssets,
   fetchSecondaryImages,
   getMaxImageOrder,
+  updateDetallesPadron,
   updateRecordWithOptionalImage,
   uploadAndInsertAdditionalImages,
 } from "../../repositories/records.repository";
@@ -40,6 +41,9 @@ export function useRecordsFlow(
   const [editAdditionalPreviewUrls, setEditAdditionalPreviewUrls] = useState<string[]>([]);
   const [editExistingSecondaryImages, setEditExistingSecondaryImages] = useState<SecondaryImageInfo[]>([]);
   const [editIsMultiFile, setEditIsMultiFile] = useState(false);
+  const [editDni, setEditDni] = useState("");
+  const [editNombre, setEditNombre] = useState("");
+  const [editTipoPredio, setEditTipoPredio] = useState("");
 
   useEffect(() => {
     setUserRecords([]);
@@ -127,6 +131,14 @@ export function useRecordsFlow(
         });
       }
 
+      if (editIsMultiFile) {
+        await updateDetallesPadron(item.id_registro, {
+          DNI: editDni,
+          Nombre: editNombre,
+          "Tipo de Predio": editTipoPredio,
+        });
+      }
+
       showToast("Actualizado", "success");
       setIsPhotoModalOpen(false);
       setEditEvidenceFile(null);
@@ -170,6 +182,10 @@ export function useRecordsFlow(
       setEditIsMultiFile(isMulti);
 
       if (isMulti) {
+        setEditDni(record.DNI ?? "");
+        setEditNombre(record.Nombre ?? "");
+        setEditTipoPredio("");
+
         fetchSecondaryImages(record.id_registro)
           .then((images) => setEditExistingSecondaryImages(images))
           .catch((err) =>
@@ -261,6 +277,12 @@ export function useRecordsFlow(
     setEditEvidenceFile,
     handleCreateCSV,
     editIsMultiFile,
+    editDni,
+    setEditDni,
+    editNombre,
+    setEditNombre,
+    editTipoPredio,
+    setEditTipoPredio,
     editAdditionalPreviewUrls,
     editExistingSecondaryUrls: editExistingSecondaryImages.map((img) => img.url),
     handleEditFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => {

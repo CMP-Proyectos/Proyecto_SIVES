@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { styles } from '../../../theme/styles';
-import { isCuadroTexto, isEncuesta, getOpcionesSeleccion } from "../../../utils/activity";
+import { isCuadroTexto, isEncuesta, getOpcionesSeleccion, isRegistroUsuarios } from "../../../utils/activity";
 
 interface Props {
   open: boolean;
@@ -23,6 +23,12 @@ interface Props {
   existingSecondaryUrls?: string[];
   onAdditionalFilesSelect?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveAdditionalFile?: (index: number) => void;
+  editDni?: string;
+  editNombre?: string;
+  editTipoPredio?: string;
+  onDniChange?: (val: string) => void;
+  onNombreChange?: (val: string) => void;
+  onTipoPredioChange?: (val: string) => void;
 }
 
 export const PhotoEditModal = ({
@@ -46,6 +52,12 @@ export const PhotoEditModal = ({
   existingSecondaryUrls = [],
   onAdditionalFilesSelect,
   onRemoveAdditionalFile,
+  editDni,
+  editNombre,
+  editTipoPredio,
+  onDniChange,
+  onNombreChange,
+  onTipoPredioChange,
 }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const additionalFileInputRef = useRef<HTMLInputElement>(null);
@@ -53,6 +65,7 @@ export const PhotoEditModal = ({
   const isPatActivity = isCuadroTexto({ Nombre_Actividad: Actividad, Grupo });
   const isEncuestaActivity = isEncuesta({ Nombre_Actividad: Actividad, Grupo });
   const isSeleccion = getOpcionesSeleccion({ Nombre_Actividad: Actividad, Grupo });
+  const isRegistro = isRegistroUsuarios({ Nombre_Actividad: Actividad, Grupo });
 
   if (!open) return null;
 
@@ -66,7 +79,6 @@ export const PhotoEditModal = ({
           overflowY: 'auto'
         }}
       >
-      <div style={styles.modalCard}>
         <h3 style={styles.heading}>Editar Registro</h3>
 
         {previewUrl && (
@@ -261,6 +273,55 @@ export const PhotoEditModal = ({
           style={styles.input}
         />
 
+          {isRegistro && (
+            <div style={{
+              marginTop: '14px',
+              padding: '16px',
+              backgroundColor: '#F8FAFC',
+              borderRadius: '8px',
+              border: '1px solid #CBD5E1',
+            }}>
+              <label style={{ ...styles.label, fontWeight: '700', fontSize: '13px', marginBottom: '12px', display: 'block' }}>
+                Detalles de Padrón / Usuario
+              </label>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={styles.label}>Documento de Identidad (DNI)</label>
+                <input
+                  type="text"
+                  value={editDni ?? ""}
+                  onChange={(e) => onDniChange?.(e.target.value)}
+                  placeholder="Ingrese el DNI"
+                  style={styles.input}
+                />
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={styles.label}>Nombre Completo</label>
+                <input
+                  type="text"
+                  value={editNombre ?? ""}
+                  onChange={(e) => onNombreChange?.(e.target.value)}
+                  placeholder="Ingrese el nombre completo"
+                  style={styles.input}
+                />
+              </div>
+
+              <div>
+                <label style={styles.label}>Tipo de Predio</label>
+                <select
+                  value={editTipoPredio ?? ""}
+                  onChange={(e) => onTipoPredioChange?.(e.target.value)}
+                  style={styles.input}
+                >
+                  <option value="" disabled>Seleccione tipo de predio...</option>
+                  <option value="VI">Vivienda</option>
+                  <option value="VD">No Vivienda</option>
+                </select>
+              </div>
+            </div>
+          )}
+
           {isPatActivity && (
             <div style={{ marginTop: "14px" }}>
               <label style={styles.label}>Resistividad</label>           
@@ -323,7 +384,6 @@ export const PhotoEditModal = ({
             Guardar
           </button>
         </div>
-      </div>
       </div>
     </div>
   );

@@ -44,6 +44,8 @@ export type UseGalleryFlowResult = {
   setSelectedStructure: (structure: string | null) => void;
   setSelectedGroup: (group: string | null) => void;
   setSelectedActivityId: (activityId: number | null) => void;
+  dniFilter: string;
+  setDniFilter: (v: string) => void;
   clearFilters: () => void;
 };
 
@@ -62,6 +64,7 @@ export function useGalleryFlow({
   const [selectedGroup, setSelectedGroupState] = useState<string | null>(null);
   const [selectedActivityId, setSelectedActivityIdState] = useState<number | null>(null);
   const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null);
+  const [dniFilter, setDniFilterState] = useState<string>("");
   
   const [globalError] = useState<string | null>(null);
 
@@ -75,6 +78,7 @@ export function useGalleryFlow({
     setSelectedGroupState(null);
     setSelectedActivityIdState(null);
     setSelectedRecordId(null);
+    setDniFilterState("");
   }, []);
   
 const options = useMemo(() => {
@@ -193,6 +197,8 @@ const options = useMemo(() => {
     setSelectedStructure: setSelectedStructureState,
     setSelectedGroup: setSelectedGroupState,
     setSelectedActivityId: setSelectedActivityIdState,
+    dniFilter,
+    setDniFilter: setDniFilterState,
     clearFilters,
   };
 }

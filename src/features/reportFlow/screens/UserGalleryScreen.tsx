@@ -100,6 +100,16 @@ export const UserGalleryScreen = ({
 
         if (gallery.selectedActivityName && normalize(rec.nombre_actividad) !== normalize(gallery.selectedActivityName)) return false;
         
+        if (gallery.dniFilter) {
+          const isRegistro = isRegistroUsuarios({
+            Nombre_Actividad: rec.nombre_actividad,
+            Grupo: rec.nombre_grupo,
+          });
+          if (!isRegistro || !normalize(rec.DNI).includes(normalize(gallery.dniFilter))) {
+            return false;
+          }
+        }
+
         return true;
     });
     }, [
@@ -110,7 +120,8 @@ export const UserGalleryScreen = ({
         gallery.selectedFrontName,
         gallery.selectedLocalityName,
         gallery.selectedGroup,
-        gallery.selectedActivityName
+        gallery.selectedActivityName,
+        gallery.dniFilter
     ]);
   
     useEffect(() => {
@@ -472,6 +483,28 @@ export const UserGalleryScreen = ({
                     onChange={(value) => gallery.setSelectedActivityId(value ? Number(value) : null)}
                     placeholder="Todas las actividades"
                 />
+
+                <div>
+                    <label style={{ ...styles.label, fontSize: '11px', marginBottom: '4px', display: 'block' }}>
+                        DNI (Reg. Usuarios)
+                    </label>
+                    <input
+                        type="text"
+                        value={gallery.dniFilter}
+                        onChange={(e) => gallery.setDniFilter(e.target.value)}
+                        placeholder="Buscar por DNI..."
+                        style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid #CBD5E1',
+                            backgroundColor: '#FFFFFF',
+                            color: '#334155',
+                            fontSize: '14px',
+                            boxSizing: 'border-box',
+                        }}
+                    />
+                </div>
 
                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                     <button 
