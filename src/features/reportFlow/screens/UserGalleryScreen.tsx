@@ -257,7 +257,8 @@ export const UserGalleryScreen = ({
                     {rec.url_foto ? (
                         <img src={rec.url_foto} style={{maxWidth:'100%', maxHeight:'50vh', objectFit:'contain', borderRadius: '4px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'}} alt="Evidencia" />
                     ) : (
-                        <div style={{color:'#94A3B8', fontWeight:'600'}}>SIN IMAGEN DISPONIBLE</div>
+                        <div style={{color:'#94A3B8', fontWeight:'600'}}>
+                            SIN IMAGEN DISPONIBLE</div>
                     )}
                 </div>
                     <div style={{
